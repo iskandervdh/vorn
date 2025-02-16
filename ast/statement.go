@@ -1,0 +1,119 @@
+package ast
+
+import (
+	"bytes"
+	"strings"
+
+	"github.com/iskandervdh/vorn/token"
+)
+
+type Statement interface {
+	Node
+	statementNode()
+}
+
+type VariableStatement struct {
+	Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+func (vs *VariableStatement) statementNode() {}
+
+func (vs *VariableStatement) TokenLiteral() string {
+	return vs.Token.Literal
+}
+
+func (vs *VariableStatement) IsLet() bool {
+	return vs.Token.Type == token.LET
+}
+
+func (vs *VariableStatement) IsConst() bool {
+	return vs.Token.Type == token.CONST
+}
+
+func (vs *VariableStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(vs.TokenLiteral() + " ")
+	out.WriteString(vs.Name.String())
+	out.WriteString(" = ")
+
+	if vs.Value != nil {
+		out.WriteString(vs.Value.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
+
+type ReturnStatement struct {
+	Token       token.Token
+	ReturnValue Expression
+}
+
+func (rs *ReturnStatement) statementNode()       {}
+func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
+
+func (rs *ReturnStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(rs.TokenLiteral() + " ")
+
+	if rs.ReturnValue != nil {
+		out.WriteString(rs.ReturnValue.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
+
+type BlockStatement struct {
+	Token      token.Token // the { token
+	Statements []Statement
+}
+
+func (bs *BlockStatement) statementNode()       {}
+func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs *BlockStatement) String() string {
+	var out bytes.Buffer
+
+	for _, s := range bs.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
+}
+
+type FunctionStatement struct {
+	Token      token.Token // the 'func' token
+	Name       *Identifier
+	Parameters []*Identifier
+
+	Body *BlockStatement
+}
+
+func (fs *FunctionStatement) statementNode()       {}
+func (fs *FunctionStatement) TokenLiteral() string { return fs.Token.Literal }
+func (fs *FunctionStatement) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+
+	for _, p := range fs.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString(fs.TokenLiteral())
+	out.WriteString(" ")
+	out.WriteString(fs.Name.String())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") ")
+
+	out.WriteString(fs.Body.String())
+
+	return out.String()
+}

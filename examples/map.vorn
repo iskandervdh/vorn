@@ -1,0 +1,5 @@
+func timesTwo(x) {
+    return x * 2;
+}
+
+print(map([1, 2, 3, 4], timesTwo));

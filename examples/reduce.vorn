@@ -1,0 +1,5 @@
+func sum(arr) {
+    return reduce(arr, 0, func(initial, element) { return initial + element; });
+}
+
+print(sum([1, 2, 3, 4]));

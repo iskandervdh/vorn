@@ -1,0 +1,6 @@
+func hello(x) {
+    print("Hello " + x + "!");
+}
+
+hello("You");
+hello("World");

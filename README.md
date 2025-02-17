@@ -11,11 +11,13 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 * Arrays and Hashes
 * If statements
 * Functions
-* A few built-in functions (print, pow, sqrt)
+* A few built-in functions (print, pow, sqrt, etc.)
 * A REPL
 
 ## Planned features
 
+* Variable reassignment (x = 1, x += 1)
+* Constants not being reassignable
 * Comments
 * Loops
 * Error handling

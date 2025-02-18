@@ -17,6 +17,7 @@ type (
 
 type Parser struct {
 	l      *lexer.Lexer
+	scope  ast.Scope
 	errors []string
 
 	currentToken token.Token
@@ -171,10 +172,47 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 	}
 }
 
+func (p *Parser) checkConstReassignment(scope ast.Scope, newStatement ast.Statement) {
+	expressionStatement, ok := newStatement.(*ast.ExpressionStatement)
+
+	if !ok || expressionStatement == nil {
+		return
+	}
+
+	reassignmentExpression, ok := expressionStatement.Expression.(*ast.ReassignmentExpression)
+
+	if !ok || reassignmentExpression == nil {
+		return
+	}
+
+	for _, statement := range scope.GetScopeStatements() {
+		variableStatement, ok := statement.(*ast.VariableStatement)
+
+		if !ok || !variableStatement.IsConst() {
+			continue
+		}
+
+		if variableStatement.Name.Value == reassignmentExpression.Name.Value {
+			e := fmt.Sprintf("[%d:%d] can not reassign constant %s.",
+				reassignmentExpression.Token.Line,
+				reassignmentExpression.Token.Column,
+				reassignmentExpression.Name.Value,
+			)
+
+			p.errors = append(p.errors, e)
+			return
+		}
+	}
+
+	if scope.GetParentScope() != nil {
+		p.checkConstReassignment(scope.GetParentScope(), newStatement)
+	}
+}
+
 func (p *Parser) checkVariableRedefinition(statements []ast.Statement, newStatement ast.Statement) {
 	expressionStatement, ok := newStatement.(*ast.VariableStatement)
 
-	if !ok {
+	if !ok || expressionStatement == nil {
 		return
 	}
 
@@ -199,10 +237,12 @@ func (p *Parser) checkVariableRedefinition(statements []ast.Statement, newStatem
 
 func (p *Parser) ParseProgram() *ast.Program {
 	program := ast.NewProgram()
+	p.scope = program
 
 	for p.currentToken.Type != token.EOF {
 		statement := p.parseStatement()
 
+		p.checkConstReassignment(program, statement)
 		p.checkVariableRedefinition(program.Statements, statement)
 
 		program.Statements = append(program.Statements, statement)
@@ -490,17 +530,25 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 		Statements: []ast.Statement{},
 	}
 
+	// Create a new scope for the block
+	block.Parent = p.scope
+	p.scope = block
+
 	p.nextToken()
 
 	for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
 		statement := p.parseStatement()
 
+		p.checkConstReassignment(block, statement)
 		p.checkVariableRedefinition(block.Statements, statement)
 
 		block.Statements = append(block.Statements, statement)
 
 		p.nextToken()
 	}
+
+	// Restore the parent scope
+	p.scope = p.scope.GetParentScope()
 
 	return block
 }
@@ -633,8 +681,6 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 
 func (p *Parser) parseReassignLiteral() ast.Expression {
 	p.nextToken()
-
-	fmt.Println(p.currentToken)
 
 	return p.parseExpression(LOWEST)
 }

@@ -75,6 +75,7 @@ func (rs *ReturnStatement) String() string {
 }
 
 type BlockStatement struct {
+	Parent     Scope
 	Token      token.Token // the { token
 	Statements []Statement
 }
@@ -89,6 +90,14 @@ func (bs *BlockStatement) String() string {
 	}
 
 	return out.String()
+}
+
+func (bs *BlockStatement) GetParentScope() Scope {
+	return bs.Parent
+}
+
+func (bs *BlockStatement) GetScopeStatements() []Statement {
+	return bs.Statements
 }
 
 type FunctionStatement struct {

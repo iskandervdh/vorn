@@ -998,3 +998,24 @@ func TestParsingReassignment(t *testing.T) {
 		t.Errorf("expression.Token.Literal not %s. got %s", "=", expression.Token.Literal)
 	}
 }
+
+func TestParsingConstReassignmentError(t *testing.T) {
+	input := `const NAME = "YOU";
+NAME = "ME";`
+
+	l := lexer.New(input)
+	p := New(l)
+	p.ParseProgram()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Error("Expected a parser error")
+	}
+
+	expectedError := "[2:7] can not reassign constant NAME."
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}

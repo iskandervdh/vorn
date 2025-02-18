@@ -1,0 +1,18 @@
+// This is a comment
+
+// This will not be executed
+// let x = 5;
+// print(x);
+
+let x = 1;
+
+print(x);
+
+/*
+This
+is
+a
+multi
+line
+comment
+*/print("done");

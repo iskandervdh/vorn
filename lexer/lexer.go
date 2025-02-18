@@ -68,6 +68,12 @@ func (l *Lexer) NextToken() token.Token {
 			t = token.New(token.EXCLAMATION, l.char, l.line, l.column)
 		}
 	case '/':
+		t := l.skipComment()
+
+		if t.Type != token.COMMENT {
+			return t
+		}
+
 		t = token.New(token.SLASH, l.char, l.line, l.column)
 	case '*':
 		t = token.New(token.ASTERISK, l.char, l.line, l.column)
@@ -162,6 +168,40 @@ func (l *Lexer) skipWhitespace() {
 
 		l.readChar()
 	}
+}
+
+func (l *Lexer) skipComment() token.Token {
+	if l.peekChar() == '/' {
+		for l.char != '\n' && l.char != 0 {
+			l.readChar()
+		}
+
+		return l.NextToken()
+	}
+
+	if l.peekChar() == '*' {
+		l.readChar()
+		l.readChar()
+
+		for {
+			if l.char == '*' && l.peekChar() == '/' {
+				l.readChar()
+				l.readChar()
+
+				break
+			}
+
+			if l.char == 0 {
+				return token.New(token.ILLEGAL, l.char, l.line, l.column)
+			}
+
+			l.readChar()
+		}
+
+		return l.NextToken()
+	}
+
+	return token.New(token.COMMENT, l.char, l.line, l.column)
 }
 
 func (l *Lexer) readChar() {

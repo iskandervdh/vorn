@@ -10,6 +10,7 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 * Arithmetic operations
 * Comparison operators
 * Variables
+* Comments
 * Arrays and Hashes
 * If statements
 * Functions
@@ -18,7 +19,6 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 
 ## Planned features
 
-* Comments
 * Loops
 * Error handling
 * Ternaries

@@ -47,7 +47,7 @@ func add(x, y) {
 }
 
 let result = add(five, ten);
-!-/*5;
+!-*/5;
 5 < 10 > 5;
 
 12 >= 12;
@@ -106,8 +106,8 @@ if (5 < 10) {
 		{token.SEMICOLON, ";"},
 		{token.EXCLAMATION, "!"},
 		{token.MINUS, "-"},
-		{token.SLASH, "/"},
 		{token.ASTERISK, "*"},
+		{token.SLASH, "/"},
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.INT, "5"},

@@ -68,13 +68,11 @@ func (l *Lexer) NextToken() token.Token {
 			t = token.New(token.EXCLAMATION, l.char, l.line, l.column)
 		}
 	case '/':
-		t := l.skipComment()
+		t = l.skipComment()
 
-		if t.Type != token.COMMENT {
-			return t
+		if t.Type == token.COMMENT {
+			return l.NextToken()
 		}
-
-		t = token.New(token.SLASH, l.char, l.line, l.column)
 	case '*':
 		t = token.New(token.ASTERISK, l.char, l.line, l.column)
 	case '<':
@@ -176,7 +174,7 @@ func (l *Lexer) skipComment() token.Token {
 			l.readChar()
 		}
 
-		return l.NextToken()
+		return token.New(token.COMMENT, l.char, l.line, l.column)
 	}
 
 	if l.peekChar() == '*' {
@@ -198,10 +196,10 @@ func (l *Lexer) skipComment() token.Token {
 			l.readChar()
 		}
 
-		return l.NextToken()
+		return token.New(token.COMMENT, l.char, l.line, l.column)
 	}
 
-	return token.New(token.COMMENT, l.char, l.line, l.column)
+	return token.New(token.SLASH, l.char, l.line, l.column)
 }
 
 func (l *Lexer) readChar() {

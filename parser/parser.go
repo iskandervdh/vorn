@@ -171,11 +171,40 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 	}
 }
 
+func (p *Parser) checkVariableRedefinition(statements []ast.Statement, newStatement ast.Statement) {
+	expressionStatement, ok := newStatement.(*ast.VariableStatement)
+
+	if !ok {
+		return
+	}
+
+	for _, statement := range statements {
+		variableStatement, ok := statement.(*ast.VariableStatement)
+
+		if !ok {
+			continue
+		}
+
+		if variableStatement.Name.Value == expressionStatement.Name.Value {
+			e := fmt.Sprintf("[%d:%d] can not redefine variable %s.",
+				expressionStatement.Token.Line,
+				expressionStatement.Token.Column,
+				expressionStatement.Name.Value,
+			)
+
+			p.errors = append(p.errors, e)
+		}
+	}
+}
+
 func (p *Parser) ParseProgram() *ast.Program {
 	program := ast.NewProgram()
 
 	for p.currentToken.Type != token.EOF {
 		statement := p.parseStatement()
+
+		p.checkVariableRedefinition(program.Statements, statement)
+
 		program.Statements = append(program.Statements, statement)
 
 		p.nextToken()
@@ -465,6 +494,8 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 
 	for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
 		statement := p.parseStatement()
+
+		p.checkVariableRedefinition(block.Statements, statement)
 
 		block.Statements = append(block.Statements, statement)
 

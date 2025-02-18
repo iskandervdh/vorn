@@ -276,7 +276,7 @@ func isError(obj object.Object) bool {
 }
 
 func (e *Evaluator) evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	if val, ok := env.Get(node.Value); ok {
+	if val, _, ok := env.Get(node.Value); ok {
 		return val
 	}
 
@@ -544,7 +544,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		return e.evalIndexExpression(left, index)
 
 	case *ast.ReassignmentExpression:
-		_, defined := env.GetFromCurrent(node.Name.Value)
+		_, environment, defined := env.Get(node.Name.Value)
 
 		if !defined {
 			return newError("[%d:%d] variable %s has not been initialized.", node.Token.Line, node.Token.Column, node.Name.Value)
@@ -556,7 +556,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 			return value
 		}
 
-		env.Set(node.Name.Value, value)
+		environment.Set(node.Name.Value, value)
 	}
 
 	return nil

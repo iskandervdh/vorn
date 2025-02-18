@@ -18,14 +18,15 @@ func NewEnclosedEnvironment(outer *Environment) *Environment {
 	return env
 }
 
-func (e *Environment) Get(name string) (Object, bool) {
+func (e *Environment) Get(name string) (Object, *Environment, bool) {
+	env := e
 	obj, ok := e.store[name]
 
 	if !ok && e.outer != nil {
-		obj, ok = e.outer.Get(name)
+		obj, env, ok = e.outer.Get(name)
 	}
 
-	return obj, ok
+	return obj, env, ok
 }
 
 func (e *Environment) GetFromCurrent(name string) (Object, bool) {

@@ -3,3 +3,14 @@ let x = 1;
 x = 2;
 
 print(x);
+
+const ANSWER = "YES";
+
+func x() {
+    const ANSWER = "NO";
+
+    return ANSWER;
+}
+
+print(x());
+print(ANSWER);

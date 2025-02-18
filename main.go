@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/iskandervdh/vorn/evaluator"
 	"github.com/iskandervdh/vorn/lexer"
@@ -41,10 +42,30 @@ func runProgram(in io.Reader, out io.Writer) {
 	}
 }
 
+func handleFlag(flag string) {
+	switch flag {
+	case "-v", "--version":
+		fmt.Printf("vorn %s\n", version.Version)
+		os.Exit(0)
+	case "-h", "--help":
+		fmt.Println("Usage: vorn [file]")
+		os.Exit(0)
+	default:
+		fmt.Printf("Unknown flag %s\n", flag)
+		os.Exit(1)
+	}
+}
+
 func main() {
 	if len(os.Args) == 1 {
 		fmt.Printf("vorn %s\n", version.Version)
 		repl.Start(os.Stdin, os.Stdout)
+
+		return
+	}
+
+	if strings.HasPrefix(os.Args[1], "-") {
+		handleFlag(os.Args[1])
 
 		return
 	}

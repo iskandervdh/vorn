@@ -16,8 +16,6 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 
 ## Planned features
 
-* Variable reassignment (x = 1, x += 1)
-* Constants not being reassignable
 * Comments
 * Loops
 * Error handling

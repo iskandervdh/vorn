@@ -1,3 +1,5 @@
+<p align="center"><img src="./assets/vorn.svg" width="128" height="128"></p>
+
 # vorn
 
 vorn is a simple interpreted C-like scripting language that I'm making to learn more about language design and implementation.

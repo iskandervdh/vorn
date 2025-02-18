@@ -3,9 +3,72 @@ package evaluator
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/iskandervdh/vorn/object"
 )
+
+// String functions
+
+func (e *Evaluator) builtinSplit(args ...object.Object) object.Object {
+	if len(args) == 0 || len(args) > 2 {
+		return newError("wrong number of arguments. got %d, want 1 or 2", len(args))
+	}
+
+	if args[0].Type() != object.STRING_OBJ {
+		return newError("first argument to `split` must be STRING, got %s", args[0].Type())
+	}
+
+	separator := " "
+
+	if len(args) == 2 {
+		if args[1].Type() != object.STRING_OBJ {
+			return newError("second argument to `split` must be STRING, got %s", args[1].Type())
+		}
+
+		separator = args[1].(*object.String).Value
+	}
+
+	str := args[0].(*object.String).Value
+
+	parts := strings.Split(str, separator)
+	elements := make([]object.Object, len(parts))
+
+	for i, part := range parts {
+		elements[i] = &object.String{Value: part}
+	}
+	return &object.Array{Elements: elements}
+}
+
+func (e *Evaluator) builtinUppercase(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if args[0].Type() != object.STRING_OBJ {
+		return newError("argument to `uppercase` must be STRING, got %s", args[0].Type())
+	}
+
+	str := args[0].(*object.String).Value
+
+	return &object.String{Value: strings.ToUpper(str)}
+}
+
+func (e *Evaluator) builtinLowercase(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if args[0].Type() != object.STRING_OBJ {
+		return newError("argument to `lowercase` must be STRING, got %s", args[0].Type())
+	}
+
+	str := args[0].(*object.String).Value
+
+	return &object.String{Value: strings.ToLower(str)}
+}
+
+// String & Array functions
 
 func (e *Evaluator) builtinLen(args ...object.Object) object.Object {
 	if len(args) != 1 {
@@ -69,14 +132,15 @@ func (e *Evaluator) builtinLast(args ...object.Object) object.Object {
 	return NULL
 }
 
+// Array functions
+
 func (e *Evaluator) builtinRest(args ...object.Object) object.Object {
 	if len(args) != 1 {
 		return newError("wrong number of arguments. got %d, want 1", len(args))
 	}
 
 	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("argument to `rest` must be ARRAY, got %s",
-			args[0].Type())
+		return newError("argument to `rest` must be ARRAY, got %s", args[0].Type())
 	}
 
 	arr := args[0].(*object.Array)
@@ -203,6 +267,8 @@ func (e *Evaluator) builtinReduce(args ...object.Object) object.Object {
 
 	return e.builtinIterReduce(arr, initial, f)
 }
+
+// IO functions
 
 func (e *Evaluator) builtinPrint(args ...object.Object) object.Object {
 	for _, arg := range args {

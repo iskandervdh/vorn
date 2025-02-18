@@ -21,17 +21,20 @@ func New() *Evaluator {
 	e := &Evaluator{}
 
 	e.builtins = map[string]*object.Builtin{
-		"len":    {Function: e.builtinLen},
-		"first":  {Function: e.builtinFirst},
-		"last":   {Function: e.builtinLast},
-		"rest":   {Function: e.builtinRest},
-		"push":   {Function: e.builtinPush},
-		"pop":    {Function: e.builtinPop},
-		"map":    {Function: e.builtinMap},
-		"reduce": {Function: e.builtinReduce},
-		"print":  {Function: e.builtinPrint},
-		"pow":    {Function: e.builtinPow},
-		"sqrt":   {Function: e.builtinSqrt},
+		"split":     {Function: e.builtinSplit},
+		"uppercase": {Function: e.builtinUppercase},
+		"lowercase": {Function: e.builtinLowercase},
+		"len":       {Function: e.builtinLen},
+		"first":     {Function: e.builtinFirst},
+		"last":      {Function: e.builtinLast},
+		"rest":      {Function: e.builtinRest},
+		"push":      {Function: e.builtinPush},
+		"pop":       {Function: e.builtinPop},
+		"map":       {Function: e.builtinMap},
+		"reduce":    {Function: e.builtinReduce},
+		"print":     {Function: e.builtinPrint},
+		"pow":       {Function: e.builtinPow},
+		"sqrt":      {Function: e.builtinSqrt},
 	}
 
 	return e

@@ -622,3 +622,11 @@ func TestHashIndexExpressions(t *testing.T) {
 		}
 	}
 }
+
+func TestVariableReassignment(t *testing.T) {
+	input := `let x = 1;
+x = 4;
+x;`
+
+	testIntegerObject(t, testEval(input), 4)
+}

@@ -77,6 +77,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
+	p.registerPrefix(token.ASSIGN, p.parseReassignLiteral)
 
 	p.infixParseFunctions = make(map[token.TokenType]infixParseFunction)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -303,11 +304,39 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return statement
 }
 
+func (p *Parser) parseReassignmentExpression() ast.Expression {
+	statement := &ast.ReassignmentExpression{}
+
+	statement.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+
+	if !p.expectPeek(token.ASSIGN) {
+		return nil
+	}
+
+	statement.Token = p.currentToken
+
+	p.nextToken()
+
+	statement.Value = p.parseExpression(LOWEST)
+
+	for !p.currentTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return statement
+}
+
 func (p *Parser) parseIdentifier() ast.Expression {
-	return &ast.Identifier{
+	identifier := &ast.Identifier{
 		Token: p.currentToken,
 		Value: p.currentToken.Literal,
 	}
+
+	if p.currentTokenIs(token.IDENT) && p.peekTokenIs(token.ASSIGN) {
+		return p.parseReassignmentExpression()
+	}
+
+	return identifier
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {
@@ -435,8 +464,9 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	p.nextToken()
 
 	for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
-		stmt := p.parseStatement()
-		block.Statements = append(block.Statements, stmt)
+		statement := p.parseStatement()
+
+		block.Statements = append(block.Statements, statement)
 
 		p.nextToken()
 	}
@@ -568,4 +598,12 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 	}
 
 	return hash
+}
+
+func (p *Parser) parseReassignLiteral() ast.Expression {
+	p.nextToken()
+
+	fmt.Println(p.currentToken)
+
+	return p.parseExpression(LOWEST)
 }

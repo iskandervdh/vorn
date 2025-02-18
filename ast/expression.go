@@ -138,3 +138,21 @@ func (ie *IndexExpression) String() string {
 
 	return out.String()
 }
+
+type ReassignmentExpression struct {
+	Token token.Token // The = token
+	Name  *Identifier
+	Value Expression
+}
+
+func (rs *ReassignmentExpression) expressionNode()      {}
+func (rs *ReassignmentExpression) TokenLiteral() string { return rs.Token.Literal }
+func (rs *ReassignmentExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(rs.Name.String())
+	out.WriteString(" = ")
+	out.WriteString(rs.Value.String())
+
+	return out.String()
+}

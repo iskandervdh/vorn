@@ -28,14 +28,17 @@ func (e *Evaluator) builtinFirst(args ...object.Object) object.Object {
 		return newError("wrong number of arguments. got %d, want 1", len(args))
 	}
 
-	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("argument to `first` must be ARRAY, got %s", args[0].Type())
-	}
-
-	arr := args[0].(*object.Array)
-
-	if len(arr.Elements) > 0 {
-		return arr.Elements[0]
+	switch arg := args[0].(type) {
+	case *object.Array:
+		if len(arg.Elements) > 0 {
+			return arg.Elements[0]
+		}
+	case *object.String:
+		if len(arg.Value) > 0 {
+			return &object.String{Value: string(arg.Value[0])}
+		}
+	default:
+		return newError("argument to `first` must be ARRAY or STRING, got %s", args[0].Type())
 	}
 
 	return NULL
@@ -46,15 +49,21 @@ func (e *Evaluator) builtinLast(args ...object.Object) object.Object {
 		return newError("wrong number of arguments. got %d, want 1", len(args))
 	}
 
-	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("argument to `last` must be ARRAY, got '%s'", args[0].Type())
-	}
+	switch arg := args[0].(type) {
+	case *object.Array:
+		length := len(arg.Elements)
 
-	arr := args[0].(*object.Array)
-	length := len(arr.Elements)
+		if length > 0 {
+			return arg.Elements[length-1]
+		}
+	case *object.String:
+		length := len(arg.Value)
 
-	if length > 0 {
-		return arr.Elements[length-1]
+		if length > 0 {
+			return &object.String{Value: string(arg.Value[length-1])}
+		}
+	default:
+		return newError("argument to `last` must be ARRAY or STRING, got %s", args[0].Type())
 	}
 
 	return NULL
@@ -89,7 +98,7 @@ func (e *Evaluator) builtinPush(args ...object.Object) object.Object {
 	}
 
 	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("argument to `push` must be ARRAY, got '%s'", args[0].Type())
+		return newError("first argument to `push` must be ARRAY, got %s", args[0].Type())
 	}
 
 	arr := args[0].(*object.Array)
@@ -108,7 +117,7 @@ func (e *Evaluator) builtinPop(args ...object.Object) object.Object {
 	}
 
 	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("argument to `pop` must be ARRAY, got '%s'", args[0].Type())
+		return newError("first argument to `pop` must be ARRAY, got %s", args[0].Type())
 	}
 
 	arr := args[0].(*object.Array)
@@ -146,11 +155,11 @@ func (e *Evaluator) builtinMap(args ...object.Object) object.Object {
 	}
 
 	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("first argument to `map` must be ARRAY, got '%s'", args[0].Type())
+		return newError("first argument to `map` must be ARRAY, got %s", args[0].Type())
 	}
 
 	if args[1].Type() != object.FUNCTION_OBJ && args[1].Type() != object.BUILTIN_OBJ {
-		return newError("second argument to `map` must be FUNCTION OR BUILTIN, got '%s'", args[1].Type())
+		return newError("second argument to `map` must be FUNCTION or BUILTIN, got %s", args[1].Type())
 	}
 
 	arr := args[0].(*object.Array)
@@ -164,17 +173,9 @@ func (e *Evaluator) builtinIterReduce(args ...object.Object) object.Object {
 		return newError("wrong number of arguments. got %d, want 3", len(args))
 	}
 
-	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("first argument to `iter` must be ARRAY, got '%s'", args[0].Type())
-	}
-
-	if args[2].Type() != object.FUNCTION_OBJ {
-		return newError("third argument to `iter` must be FUNCTION, got '%s'", args[2].Type())
-	}
-
 	arr := args[0].(*object.Array)
 	result := args[1]
-	f := args[2].(*object.Function)
+	f := args[2]
 
 	if e.builtinLen(arr).Inspect() == "0" {
 		return result
@@ -185,20 +186,20 @@ func (e *Evaluator) builtinIterReduce(args ...object.Object) object.Object {
 
 func (e *Evaluator) builtinReduce(args ...object.Object) object.Object {
 	if len(args) != 3 {
-		return newError("wrong number of arguments. got %d, want 2", len(args))
+		return newError("wrong number of arguments. got %d, want 3", len(args))
 	}
 
 	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("first argument to `reduce` must be ARRAY, got '%s'", args[0].Type())
+		return newError("first argument to `reduce` must be ARRAY, got %s", args[0].Type())
 	}
 
-	if args[2].Type() != object.FUNCTION_OBJ {
-		return newError("third argument to `reduce` must be FUNCTION, got '%s'", args[1].Type())
+	if args[2].Type() != object.FUNCTION_OBJ && args[2].Type() != object.BUILTIN_OBJ {
+		return newError("third argument to `reduce` must be FUNCTION or BUILTIN, got %s", args[2].Type())
 	}
 
 	arr := args[0].(*object.Array)
 	initial := args[1]
-	f := args[2].(*object.Function)
+	f := args[2]
 
 	return e.builtinIterReduce(arr, initial, f)
 }
@@ -211,11 +212,9 @@ func (e *Evaluator) builtinPrint(args ...object.Object) object.Object {
 	return NULL
 }
 
-func powFloat(x float64, y float64) object.Object {
-	if x < 0 {
-		return newError("first argument to `pow` must be non-negative, got %f", x)
-	}
+// Math functions
 
+func powFloat(x float64, y float64) object.Object {
 	pow := math.Pow(x, y)
 
 	return &object.Float{Value: pow}
@@ -223,10 +222,6 @@ func powFloat(x float64, y float64) object.Object {
 
 func powInt(x int64, y int64) object.Object {
 	result := int64(1)
-
-	if x < 0 {
-		return newError("first argument to `pow` must be non-negative, got %d", x)
-	}
 
 	if y < 0 {
 		return powFloat(float64(x), float64(y))
@@ -242,14 +237,6 @@ func powInt(x int64, y int64) object.Object {
 func (e *Evaluator) builtinPow(args ...object.Object) object.Object {
 	if len(args) != 2 {
 		return newError("wrong number of arguments. got %d, want 2", len(args))
-	}
-
-	if !object.IsNumber(args[0]) {
-		return newError("first argument to `pow` must be INTEGER OR FLOAT, got %s", args[0].Type())
-	}
-
-	if !object.IsNumber(args[1]) {
-		return newError("second argument to `pow` must be INTEGER OR FLOAT, got %s", args[1].Type())
 	}
 
 	switch {
@@ -278,7 +265,7 @@ func (e *Evaluator) builtinPow(args ...object.Object) object.Object {
 		return powFloat(x, float64(y))
 
 	default:
-		return newError("arguments to `pow` must be INTEGER OR FLOAT, got %s and %s", args[0].Type(), args[1].Type())
+		return newError("arguments to `pow` must be INTEGER or FLOAT, got %s and %s", args[0].Type(), args[1].Type())
 	}
 }
 
@@ -288,7 +275,7 @@ func (e *Evaluator) builtinSqrt(args ...object.Object) object.Object {
 	}
 
 	if !object.IsNumber(args[0]) {
-		return newError("argument to `sqrt` must be INTEGER OR FLOAT, got %s", args[0].Type())
+		return newError("argument to `sqrt` must be INTEGER or FLOAT, got %s", args[0].Type())
 	}
 
 	var x float64

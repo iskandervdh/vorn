@@ -1,0 +1,43 @@
+{
+  "name": "vorn",
+  "displayName": "vorn",
+  "description": "Language support for the vorn programming language",
+  "publisher": "vorn-lang",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "vorn",
+        "aliases": [
+          "vorn"
+        ],
+        "extensions": [
+          ".vorn"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/vorn.svg",
+          "dark": "./images/vorn.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vorn",
+        "scopeName": "source.vorn",
+        "path": "./syntaxes/vorn.tmLanguage.json"
+      }
+    ]
+  },
+  "icon": "./images/vorn.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iskandervdh/vorn"
+  }
+}

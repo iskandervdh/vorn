@@ -12,21 +12,14 @@ type Expression interface {
 	expressionNode()
 }
 
-type ExpressionStatement struct {
-	Token      token.Token
-	Expression Expression
+type Identifier struct {
+	Token token.Token
+	Value string
 }
 
-func (es *ExpressionStatement) statementNode()       {}
-func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
-
-func (es *ExpressionStatement) String() string {
-	if es.Expression != nil {
-		return es.Expression.String()
-	}
-
-	return ""
-}
+func (i *Identifier) expressionNode()      {}
+func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
+func (i *Identifier) String() string       { return i.Value }
 
 type PrefixExpression struct {
 	Token    token.Token // The prefix token, e.g. !

@@ -186,10 +186,17 @@ func (p *Parser) checkConstReassignment(scope ast.Scope, newStatement ast.Statem
 		return
 	}
 
+	definedAsLetInScope := false
+
 	for _, statement := range scope.GetScopeStatements() {
 		variableStatement, ok := statement.(*ast.VariableStatement)
 
-		if !ok || !variableStatement.IsConst() {
+		if !ok {
+			continue
+		}
+
+		if !variableStatement.IsConst() {
+			definedAsLetInScope = true
 			continue
 		}
 
@@ -205,7 +212,7 @@ func (p *Parser) checkConstReassignment(scope ast.Scope, newStatement ast.Statem
 		}
 	}
 
-	if scope.GetParentScope() != nil {
+	if scope.GetParentScope() != nil && !definedAsLetInScope {
 		p.checkConstReassignment(scope.GetParentScope(), newStatement)
 	}
 }

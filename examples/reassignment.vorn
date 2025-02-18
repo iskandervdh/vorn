@@ -7,7 +7,9 @@ print(x);
 const ANSWER = "YES";
 
 func x() {
-    const ANSWER = "NO";
+    let ANSWER = "NO";
+
+    ANSWER = "MAYBE";
 
     return ANSWER;
 }

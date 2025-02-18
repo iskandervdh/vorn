@@ -102,22 +102,36 @@ func (e *Evaluator) builtinPush(args ...object.Object) object.Object {
 	return &object.Array{Elements: newElements}
 }
 
+func (e *Evaluator) builtinPop(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if args[0].Type() != object.ARRAY_OBJ {
+		return newError("argument to `pop` must be ARRAY, got '%s'", args[0].Type())
+	}
+
+	arr := args[0].(*object.Array)
+	length := len(arr.Elements)
+
+	if length > 0 {
+		newElements := make([]object.Object, length-1)
+		copy(newElements, arr.Elements[:length-1])
+
+		return &object.Array{Elements: newElements}
+	}
+
+	return NULL
+}
+
 func (e *Evaluator) builtinIterMap(args ...object.Object) object.Object {
 	if len(args) != 3 {
 		return newError("wrong number of arguments. got %d, want 2", len(args))
 	}
 
-	if args[0].Type() != object.ARRAY_OBJ {
-		return newError("first argument to `iter` must be ARRAY, got %s", args[0].Type())
-	}
-
-	if args[2].Type() != object.FUNCTION_OBJ {
-		return newError("third argument to `iter` must be FUNCTION, got %s", args[2].Type())
-	}
-
 	arr := args[0].(*object.Array)
 	accumulated := args[1]
-	f := args[2].(*object.Function)
+	f := args[2]
 
 	if e.builtinLen(arr).Inspect() == "0" {
 		return accumulated
@@ -135,12 +149,12 @@ func (e *Evaluator) builtinMap(args ...object.Object) object.Object {
 		return newError("first argument to `map` must be ARRAY, got '%s'", args[0].Type())
 	}
 
-	if args[1].Type() != object.FUNCTION_OBJ {
-		return newError("second argument to `map` must be FUNCTION, got '%s'", args[1].Type())
+	if args[1].Type() != object.FUNCTION_OBJ && args[1].Type() != object.BUILTIN_OBJ {
+		return newError("second argument to `map` must be FUNCTION OR BUILTIN, got '%s'", args[1].Type())
 	}
 
 	arr := args[0].(*object.Array)
-	f := args[1].(*object.Function)
+	f := args[1]
 
 	return e.builtinIterMap(arr, &object.Array{Elements: []object.Object{}}, f)
 }

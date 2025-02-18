@@ -67,6 +67,22 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	return true
 }
 
+func testStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.String)
+
+	if !ok {
+		t.Errorf("object is not String. got %T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("object has wrong value. got %q, want=%q", result.Value, expected)
+		return false
+	}
+
+	return true
+}
+
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != NULL {
 		t.Errorf("object is not NULL. got %T (%+v)", obj, obj)
@@ -93,6 +109,22 @@ func testArrayObject(t *testing.T, obj object.Object, expected []string) bool {
 		if result.Elements[i].Inspect() != expected[i] {
 			return false
 		}
+	}
+
+	return true
+}
+
+func testErrorObject(t *testing.T, obj object.Object, expected string) bool {
+	errObj, ok := obj.(*object.Error)
+
+	if !ok {
+		t.Errorf("object is not Error. got %T (%+v)", obj, obj)
+		return false
+	}
+
+	if errObj.Message != expected {
+		t.Errorf("wrong error message. expected %q, got %q", expected, errObj.Message)
+		return false
 	}
 
 	return true
@@ -408,51 +440,6 @@ func TestStringConcatenation(t *testing.T) {
 	}
 	if str.Value != "Hello World!" {
 		t.Errorf("String has wrong value. got %q", str.Value)
-	}
-}
-
-func TestBuiltinFunctions(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected interface{}
-	}{
-		{`len("")`, 0},
-		{`len("four")`, 4},
-		{`len("hello world")`, 11},
-		{`len(1)`, "argument to `len` not supported, got INTEGER"},
-		{`len("one", "two")`, "wrong number of arguments. got 2, want 1"},
-		{`pow(2, 3)`, 8},
-		{`pow(2, 0)`, 1},
-		{`pow(2, -1)`, 0.5},
-		{`pow(2, 1.5)`, 2.82842712474619},
-		{`sqrt(4)`, 2.0},
-		{`sqrt(25)`, 5.0},
-		{`sqrt(20)`, 4.47213595499958},
-		{`sqrt(0)`, 0.0},
-		{`sqrt(-1)`, "argument to `sqrt` must be non-negative, got -1"},
-		{`sqrt("hello")`, "argument to `sqrt` must be INTEGER OR FLOAT, got STRING"},
-	}
-
-	for _, test := range tests {
-		evaluated := testEval(test.input)
-
-		switch expected := test.expected.(type) {
-		case float64:
-			testFloatObject(t, evaluated, expected)
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case string:
-			errObj, ok := evaluated.(*object.Error)
-
-			if !ok {
-				t.Errorf("object is not Error. got %T (%+v)", evaluated, evaluated)
-				continue
-			}
-
-			if errObj.Message != expected {
-				t.Errorf("wrong error message. expected %q, got %q", expected, errObj.Message)
-			}
-		}
 	}
 }
 

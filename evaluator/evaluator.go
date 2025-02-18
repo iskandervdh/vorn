@@ -21,17 +21,24 @@ func New() *Evaluator {
 	e := &Evaluator{}
 
 	e.builtins = map[string]*object.Builtin{
-		"len":    {Function: e.builtinLen},
-		"first":  {Function: e.builtinFirst},
-		"last":   {Function: e.builtinLast},
-		"rest":   {Function: e.builtinRest},
-		"push":   {Function: e.builtinPush},
-		"pop":    {Function: e.builtinPop},
-		"map":    {Function: e.builtinMap},
-		"reduce": {Function: e.builtinReduce},
-		"print":  {Function: e.builtinPrint},
-		"pow":    {Function: e.builtinPow},
-		"sqrt":   {Function: e.builtinSqrt},
+		"type":      {Function: e.builtinType},
+		"int":       {Function: e.builtinInt},
+		"float":     {Function: e.builtinFloat},
+		"string":    {Function: e.builtinString},
+		"split":     {Function: e.builtinSplit},
+		"uppercase": {Function: e.builtinUppercase},
+		"lowercase": {Function: e.builtinLowercase},
+		"len":       {Function: e.builtinLen},
+		"first":     {Function: e.builtinFirst},
+		"last":      {Function: e.builtinLast},
+		"rest":      {Function: e.builtinRest},
+		"push":      {Function: e.builtinPush},
+		"pop":       {Function: e.builtinPop},
+		"map":       {Function: e.builtinMap},
+		"reduce":    {Function: e.builtinReduce},
+		"print":     {Function: e.builtinPrint},
+		"pow":       {Function: e.builtinPow},
+		"sqrt":      {Function: e.builtinSqrt},
 	}
 
 	return e
@@ -462,6 +469,9 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.FloatLiteral:
 		return &object.Float{Value: node.Value}
+
+	case *ast.NullLiteral:
+		return &object.Null{}
 
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}

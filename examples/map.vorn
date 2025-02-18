@@ -3,3 +3,5 @@ func timesTwo(x) {
 }
 
 print(map([1, 2, 3, 4], timesTwo));
+
+print(map([1,2,3,4], sqrt));

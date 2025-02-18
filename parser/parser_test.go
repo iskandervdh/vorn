@@ -225,23 +225,23 @@ func checkLiteralExpression(
 }
 
 func checkInfixExpression(t *testing.T, exp ast.Expression, left interface{}, operator string, right interface{}) bool {
-	operatorExpression, ok := exp.(*ast.InfixExpression)
+	infixExpression, ok := exp.(*ast.InfixExpression)
 
 	if !ok {
-		t.Errorf("exp is not ast.OperatorExpression. got %T(%s)", exp, exp)
+		t.Errorf("exp is not ast.InfixExpression. got %T(%s)", exp, exp)
 		return false
 	}
 
-	if !checkLiteralExpression(t, operatorExpression.Left, left) {
+	if !checkLiteralExpression(t, infixExpression.Left, left) {
 		return false
 	}
 
-	if operatorExpression.Operator != operator {
-		t.Errorf("exp.Operator is not '%s'. got %q", operator, operatorExpression.Operator)
+	if infixExpression.Operator != operator {
+		t.Errorf("exp.Operator is not '%s'. got %q", operator, infixExpression.Operator)
 		return false
 	}
 
-	if !checkLiteralExpression(t, operatorExpression.Right, right) {
+	if !checkLiteralExpression(t, infixExpression.Right, right) {
 		return false
 	}
 
@@ -970,5 +970,52 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 		}
 
 		testFunction(value)
+	}
+}
+
+func TestParsingReassignment(t *testing.T) {
+	program := initializeParserTest(t, "let x = 4; x = 5;", 2)
+
+	checkLetStatement(t, program.Statements[0], "x")
+
+	assignment, ok := program.Statements[1].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("program.Statements[1] is not ast.ExpressionStatement. got %T", program.Statements[1])
+	}
+
+	expression, ok := assignment.Expression.(*ast.ReassignmentExpression)
+
+	if !ok {
+		t.Fatalf("expression not *ast.ReassignmentExpression. got %T", assignment.Expression)
+	}
+
+	if expression.Name.Value != "x" {
+		t.Errorf("expression.Name.Value not %s. got %s", "x", expression.Value)
+	}
+
+	if expression.Token.Literal != "=" {
+		t.Errorf("expression.Token.Literal not %s. got %s", "=", expression.Token.Literal)
+	}
+}
+
+func TestParsingConstReassignmentError(t *testing.T) {
+	input := `const NAME = "YOU";
+NAME = "ME";`
+
+	l := lexer.New(input)
+	p := New(l)
+	p.ParseProgram()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Error("Expected a parser error")
+	}
+
+	expectedError := "[2:7] can not reassign constant NAME."
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
 	}
 }

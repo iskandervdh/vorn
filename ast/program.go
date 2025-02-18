@@ -29,3 +29,11 @@ func (p *Program) String() string {
 
 	return out.String()
 }
+
+func (p *Program) GetParentScope() Scope {
+	return nil
+}
+
+func (p *Program) GetScopeStatements() []Statement {
+	return p.Statements
+}

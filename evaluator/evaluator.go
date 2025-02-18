@@ -21,36 +21,17 @@ func New() *Evaluator {
 	e := &Evaluator{}
 
 	e.builtins = map[string]*object.Builtin{
-		"len": {
-			Function: e.builtinLen,
-		},
-		"first": {
-			Function: e.builtinFirst,
-		},
-		"last": {
-			Function: e.builtinLast,
-		},
-		"rest": {
-			Function: e.builtinRest,
-		},
-		"push": {
-			Function: e.builtinPush,
-		},
-		"map": {
-			Function: e.builtinMap,
-		},
-		"reduce": {
-			Function: e.builtinReduce,
-		},
-		"print": {
-			Function: e.builtinPrint,
-		},
-		"pow": {
-			Function: e.builtinPow,
-		},
-		"sqrt": {
-			Function: e.builtinSqrt,
-		},
+		"len":    {Function: e.builtinLen},
+		"first":  {Function: e.builtinFirst},
+		"last":   {Function: e.builtinLast},
+		"rest":   {Function: e.builtinRest},
+		"push":   {Function: e.builtinPush},
+		"pop":    {Function: e.builtinPop},
+		"map":    {Function: e.builtinMap},
+		"reduce": {Function: e.builtinReduce},
+		"print":  {Function: e.builtinPrint},
+		"pow":    {Function: e.builtinPow},
+		"sqrt":   {Function: e.builtinSqrt},
 	}
 
 	return e
@@ -295,7 +276,7 @@ func isError(obj object.Object) bool {
 }
 
 func (e *Evaluator) evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	if val, ok := env.Get(node.Value); ok {
+	if val, _, ok := env.Get(node.Value); ok {
 		return val
 	}
 
@@ -561,6 +542,21 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 
 		return e.evalIndexExpression(left, index)
+
+	case *ast.ReassignmentExpression:
+		_, environment, defined := env.Get(node.Name.Value)
+
+		if !defined {
+			return newError("[%d:%d] variable %s has not been initialized.", node.Token.Line, node.Token.Column, node.Name.Value)
+		}
+
+		value := e.Eval(node.Value, env)
+
+		if isError(value) {
+			return value
+		}
+
+		environment.Set(node.Name.Value, value)
 	}
 
 	return nil

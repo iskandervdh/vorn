@@ -12,26 +12,31 @@ type Statement interface {
 	statementNode()
 }
 
+type ExpressionStatement struct {
+	Token      token.Token
+	Expression Expression
+}
+
+func (es *ExpressionStatement) statementNode()       {}
+func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
+func (es *ExpressionStatement) String() string {
+	if es.Expression != nil {
+		return es.Expression.String()
+	}
+
+	return ""
+}
+
 type VariableStatement struct {
 	Token token.Token
 	Name  *Identifier
 	Value Expression
 }
 
-func (vs *VariableStatement) statementNode() {}
-
-func (vs *VariableStatement) TokenLiteral() string {
-	return vs.Token.Literal
-}
-
-func (vs *VariableStatement) IsLet() bool {
-	return vs.Token.Type == token.LET
-}
-
-func (vs *VariableStatement) IsConst() bool {
-	return vs.Token.Type == token.CONST
-}
-
+func (vs *VariableStatement) statementNode()       {}
+func (vs *VariableStatement) TokenLiteral() string { return vs.Token.Literal }
+func (vs *VariableStatement) IsLet() bool          { return vs.Token.Type == token.LET }
+func (vs *VariableStatement) IsConst() bool        { return vs.Token.Type == token.CONST }
 func (vs *VariableStatement) String() string {
 	var out bytes.Buffer
 
@@ -55,7 +60,6 @@ type ReturnStatement struct {
 
 func (rs *ReturnStatement) statementNode()       {}
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
-
 func (rs *ReturnStatement) String() string {
 	var out bytes.Buffer
 
@@ -71,6 +75,7 @@ func (rs *ReturnStatement) String() string {
 }
 
 type BlockStatement struct {
+	Parent     Scope
 	Token      token.Token // the { token
 	Statements []Statement
 }
@@ -85,6 +90,14 @@ func (bs *BlockStatement) String() string {
 	}
 
 	return out.String()
+}
+
+func (bs *BlockStatement) GetParentScope() Scope {
+	return bs.Parent
+}
+
+func (bs *BlockStatement) GetScopeStatements() []Statement {
+	return bs.Statements
 }
 
 type FunctionStatement struct {

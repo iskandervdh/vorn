@@ -3,10 +3,77 @@ package evaluator
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/iskandervdh/vorn/object"
 )
+
+// Common functions
+
+func (e *Evaluator) builtinType(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	typeName := args[0].Type()
+
+	return &object.String{Value: string(typeName)}
+}
+
+func (e *Evaluator) builtinInt(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.Integer:
+		return arg
+	case *object.Float:
+		return &object.Integer{Value: int64(arg.Value)}
+	case *object.String:
+		integer, err := strconv.ParseInt(arg.Value, 0, 64)
+
+		if err != nil {
+			return newError("could not parse %q as INTEGER", arg.Value)
+		}
+
+		return &object.Integer{Value: integer}
+	default:
+		return newError("argument to `int` not supported, got %s", args[0].Type())
+	}
+}
+
+func (e *Evaluator) builtinFloat(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.Integer:
+		return &object.Float{Value: float64(arg.Value)}
+	case *object.Float:
+		return arg
+	case *object.String:
+		float, err := strconv.ParseFloat(arg.Value, 64)
+
+		if err != nil {
+			return newError("could not parse %q as FLOAT", arg.Value)
+		}
+
+		return &object.Float{Value: float}
+	default:
+		return newError("argument to `float` not supported, got %s", args[0].Type())
+	}
+}
+
+func (e *Evaluator) builtinString(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	return &object.String{Value: args[0].Inspect()}
+}
 
 // String functions
 

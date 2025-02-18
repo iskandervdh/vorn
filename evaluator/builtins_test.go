@@ -6,6 +6,134 @@ import (
 	"github.com/iskandervdh/vorn/object"
 )
 
+func TestType(t *testing.T) {
+	input := `type(1)`
+
+	testStringObject(t, testEval(input), "INTEGER")
+
+	input = `type(1.0)`
+
+	testStringObject(t, testEval(input), "FLOAT")
+
+	input = `type("hello")`
+
+	testStringObject(t, testEval(input), "STRING")
+
+	input = `type([1, 2, 3])`
+
+	testStringObject(t, testEval(input), "ARRAY")
+
+	input = `type({"key": "value"})`
+
+	testStringObject(t, testEval(input), "HASH")
+
+	input = `type(true)`
+
+	testStringObject(t, testEval(input), "BOOLEAN")
+
+	input = `type(false)`
+
+	testStringObject(t, testEval(input), "BOOLEAN")
+
+	input = `type(null)`
+
+	testStringObject(t, testEval(input), "NULL")
+
+	input = `type()`
+
+	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
+}
+
+func TestInt(t *testing.T) {
+	input := `int(1)`
+
+	testIntegerObject(t, testEval(input), 1)
+
+	input = `int(1.0)`
+
+	testIntegerObject(t, testEval(input), 1)
+
+	input = `int("1")`
+
+	testIntegerObject(t, testEval(input), 1)
+
+	input = `int("1.0")`
+
+	testErrorObject(t, testEval(input), "could not parse \"1.0\" as INTEGER")
+
+	input = `int("hello")`
+
+	testErrorObject(t, testEval(input), "could not parse \"hello\" as INTEGER")
+
+	input = `int()`
+
+	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
+
+	input = `int([1])`
+
+	testErrorObject(t, testEval(input), "argument to `int` not supported, got ARRAY")
+}
+
+func TestFloat(t *testing.T) {
+	input := `float(1)`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `float(1.0)`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `float("1")`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `float("1.0")`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `float("hello")`
+
+	testErrorObject(t, testEval(input), "could not parse \"hello\" as FLOAT")
+
+	input = `float()`
+
+	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
+
+	input = `float([1])`
+
+	testErrorObject(t, testEval(input), "argument to `float` not supported, got ARRAY")
+}
+
+func TestString(t *testing.T) {
+	input := `string(1)`
+
+	testStringObject(t, testEval(input), "1")
+
+	input = `string(1.0)`
+
+	testStringObject(t, testEval(input), "1")
+
+	input = `string("1")`
+
+	testStringObject(t, testEval(input), "1")
+
+	input = `string("hello")`
+
+	testStringObject(t, testEval(input), "hello")
+
+	input = `string([1])`
+
+	testStringObject(t, testEval(input), "[1]")
+
+	input = `string({1: 1})`
+
+	testStringObject(t, testEval(input), "{1: 1}")
+
+	input = `string()`
+
+	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
+}
+
 func TestSplit(t *testing.T) {
 	input := `split("hello world", " ")`
 

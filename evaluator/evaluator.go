@@ -21,6 +21,10 @@ func New() *Evaluator {
 	e := &Evaluator{}
 
 	e.builtins = map[string]*object.Builtin{
+		"type":      {Function: e.builtinType},
+		"int":       {Function: e.builtinInt},
+		"float":     {Function: e.builtinFloat},
+		"string":    {Function: e.builtinString},
 		"split":     {Function: e.builtinSplit},
 		"uppercase": {Function: e.builtinUppercase},
 		"lowercase": {Function: e.builtinLowercase},
@@ -465,6 +469,9 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.FloatLiteral:
 		return &object.Float{Value: node.Value}
+
+	case *ast.NullLiteral:
+		return &object.Null{}
 
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}

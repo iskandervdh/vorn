@@ -1,0 +1,34 @@
+{
+  "name": "vorn",
+  "displayName": "vorn",
+  "description": "Language support for the vorn programming language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.43.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "vorn",
+        "aliases": [
+          "vorn",
+          "vorn"
+        ],
+        "extensions": [
+          ".vorn"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vorn",
+        "scopeName": "source.vorn",
+        "path": "./syntaxes/vorn.tmLanguage.json"
+      }
+    ]
+  }
+}

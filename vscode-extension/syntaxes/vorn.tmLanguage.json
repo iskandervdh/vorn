@@ -16,6 +16,9 @@
     },
     {
       "include": "#numbers"
+    },
+    {
+      "include": "#comments"
     }
   ],
   "repository": {
@@ -23,8 +26,7 @@
       "patterns": [
         {
           "name": "keyword.control.vorn",
-          "__match": "\\b(if|while|for|return)\\b",
-          "match": "\\b(if|return)\\b"
+          "match": "\\b(if|while|for|return)\\b"
         },
         {
           "name": "keyword.declaration.variable.vorn",
@@ -93,6 +95,19 @@
         {
           "name": "constant.numeric.integer.vorn",
           "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.vorn",
+          "match": "//.*"
+        },
+        {
+          "name": "comment.block.vorn",
+          "begin": "/\\*",
+          "end": "\\*/"
         }
       ]
     }

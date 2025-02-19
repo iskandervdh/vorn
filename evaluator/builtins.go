@@ -21,6 +21,51 @@ func (e *Evaluator) builtinType(args ...object.Object) object.Object {
 	return &object.String{Value: string(typeName)}
 }
 
+func (e *Evaluator) builtinRange(args ...object.Object) object.Object {
+	if len(args) < 1 || len(args) > 2 {
+		return newError("wrong number of arguments. got %d, want 1 or 2", len(args))
+	}
+
+	if args[0].Type() != object.INTEGER_OBJ {
+		return newError("first argument to `range` must be INTEGER, got %s", args[0].Type())
+	}
+
+	start := args[0].(*object.Integer).Value
+	end := start
+
+	if len(args) == 2 {
+		if args[1].Type() != object.INTEGER_OBJ {
+			return newError("second argument to `range` must be INTEGER, got %s", args[1].Type())
+		}
+
+		end = args[1].(*object.Integer).Value
+	} else {
+		start = 0
+	}
+
+	elementsLength := end - start
+
+	if start > end {
+		elementsLength = start - end
+	}
+
+	elements := make([]object.Object, elementsLength)
+
+	if start > end {
+		for i := start; i > end; i-- {
+			elements[start-i] = &object.Integer{Value: i}
+		}
+	} else {
+		for i := start; i < end; i++ {
+			elements[i-start] = &object.Integer{Value: i}
+		}
+	}
+
+	return &object.Array{Elements: elements}
+}
+
+// Conversion functions
+
 func (e *Evaluator) builtinInt(args ...object.Object) object.Object {
 	if len(args) != 1 {
 		return newError("wrong number of arguments. got %d, want 1", len(args))
@@ -73,6 +118,27 @@ func (e *Evaluator) builtinString(args ...object.Object) object.Object {
 	}
 
 	return &object.String{Value: args[0].Inspect()}
+}
+
+func (e *Evaluator) builtinBool(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.Boolean:
+		return arg
+	case *object.Integer:
+		return &object.Boolean{Value: arg.Value != 0}
+	case *object.Float:
+		return &object.Boolean{Value: arg.Value != 0}
+	case *object.String:
+		return &object.Boolean{Value: arg.Value != ""}
+	case *object.Array:
+		return &object.Boolean{Value: len(arg.Elements) != 0}
+	default:
+		return newError("argument to `bool` not supported, got %s", args[0].Type())
+	}
 }
 
 // String functions
@@ -346,6 +412,29 @@ func (e *Evaluator) builtinPrint(args ...object.Object) object.Object {
 }
 
 // Math functions
+
+func (e *Evaluator) builtinAbs(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.Integer:
+		if arg.Value < 0 {
+			return &object.Integer{Value: -arg.Value}
+		}
+
+		return arg
+	case *object.Float:
+		if arg.Value < 0 {
+			return &object.Float{Value: -arg.Value}
+		}
+
+		return arg
+	default:
+		return newError("argument to `abs` must be INTEGER or FLOAT, got %s", args[0].Type())
+	}
+}
 
 func powFloat(x float64, y float64) object.Object {
 	pow := math.Pow(x, y)

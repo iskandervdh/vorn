@@ -277,6 +277,25 @@ func TestWhileExpressions(t *testing.T) {
 	}
 }
 
+func TestFor(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let x = 0; for (let i = 0; i < 10; i = i + 1) { x = x + 1; }; x;", 10},
+		{"let x = 0; for (let i = 0; i < 10; i = i + 1) { if (i == 4) { x = i; break; } }; x;", 4},
+		{"let x = 0; for (let i = 0; i < 4; i = i + 1) { if (i != 3) { continue; } x = i; }; x;", 3},
+		{"let i = 0; for (; i < 10; i = i + 1) { }; i;", 10},
+		{"let i = 0; for (; i < 10;) { i = i + 1; }; i;", 10},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+
+		testIntegerObject(t, evaluated, test.expected)
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input    string

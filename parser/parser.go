@@ -76,7 +76,6 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.WHILE, p.parseWhileExpression)
-	p.registerPrefix(token.FOR, p.parseForExpression)
 	p.registerPrefix(token.BREAK, p.parseBreakExpression)
 	p.registerPrefix(token.CONTINUE, p.parseContinueExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
@@ -275,6 +274,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseReturnStatement()
 	case token.FUNCTION:
 		return p.parseFunction()
+	case token.FOR:
+		return p.parseFor()
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -563,8 +564,57 @@ func (p *Parser) parseWhileExpression() ast.Expression {
 	return expression
 }
 
-func (p *Parser) parseForExpression() ast.Expression {
-	return &ast.ForExpression{Token: p.currentToken}
+func (p *Parser) parseFor() ast.Statement {
+	// Initialize for loop scope
+	forStatement := ast.ForStatement{Token: p.currentToken}
+	forStatement.Parent = p.scope
+	p.scope = &forStatement
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+
+	if p.currentTokenIs(token.LET) {
+		forStatement.Init = p.parseVariableStatement()
+	} else if p.currentTokenIs(token.CONST) {
+		forStatement.Init = p.parseVariableStatement()
+	} else if p.currentTokenIs(token.SEMICOLON) {
+		forStatement.Init = nil
+	} else {
+		forStatement.Init = p.parseExpressionStatement()
+	}
+
+	p.nextToken()
+	forStatement.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	p.nextToken()
+
+	if p.currentTokenIs(token.SEMICOLON) {
+		forStatement.Update = nil
+	} else {
+		forStatement.Update = p.parseExpression(LOWEST)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	forStatement.Body = p.parseBlockStatement()
+
+	// Restore the parent scope
+	p.scope = p.scope.GetParentScope()
+
+	return &forStatement
 }
 
 func (p *Parser) parseBreakExpression() ast.Expression {

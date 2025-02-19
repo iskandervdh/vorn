@@ -293,6 +293,54 @@ func (e *Evaluator) evalWhileExpression(we *ast.WhileExpression, env *object.Env
 	return NULL
 }
 
+func (e *Evaluator) evalForExpression(fs *ast.ForStatement, env *object.Environment) object.Object {
+	var result object.Object
+
+	if fs.Init != nil {
+		e.Eval(fs.Init, env)
+	}
+
+	for {
+		condition := e.Eval(fs.Condition, env)
+
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		result = e.evalBlockStatement(fs.Body, env)
+
+		if result != nil {
+			rt := result.Type()
+
+			if rt == object.CONTINUE_OBJ {
+				if fs.Update != nil {
+					e.Eval(fs.Update, env)
+				}
+
+				continue
+			}
+
+			if rt == object.BREAK_OBJ {
+				break
+			}
+
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+				return result
+			}
+		}
+
+		if fs.Update != nil {
+			e.Eval(fs.Update, env)
+		}
+	}
+
+	return NULL
+}
+
 func isTruthy(obj object.Object) bool {
 	switch obj {
 	case NULL:
@@ -495,6 +543,9 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		function := &object.Function{Parameters: params, Env: env, Body: body}
 
 		env.Set(node.Name.Value, function)
+
+	case *ast.ForStatement:
+		return e.evalForExpression(node, env)
 
 	// Expressions
 	case *ast.IntegerLiteral:

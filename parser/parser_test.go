@@ -736,6 +736,87 @@ func TestWhileExpression(t *testing.T) {
 	}
 }
 
+func TestForStatement(t *testing.T) {
+	program := initializeParserTest(t, "for (let i = 0; i < 10; i = i + 1) { i }", 1)
+
+	statement, ok := program.Statements[0].(*ast.ForStatement)
+
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ForStatement. got %T", program.Statements[0])
+	}
+
+	if !checkLetStatement(t, statement.Init, "i") {
+		return
+	}
+
+	if !checkInfixExpression(t, statement.Condition, "i", "<", 10) {
+		return
+	}
+
+	expression, ok := statement.Update.(*ast.ReassignmentExpression)
+
+	if !ok {
+		t.Errorf("expression is not ast.ReassignmentExpression. got %T(%s)", expression, expression)
+		return
+	}
+
+	if len(statement.Body.Statements) != 1 {
+		t.Errorf("body is not 1 statements. got %d\n", len(statement.Body.Statements))
+	}
+
+	body, ok := statement.Body.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", statement.Body.Statements[0])
+	}
+
+	if !checkIdentifier(t, body.Expression, "i") {
+		return
+	}
+}
+
+func TestForOnlyConditionStatement(t *testing.T) {
+	program := initializeParserTest(t, "for (; i < 10;) { i = i + 1; }", 1)
+
+	statement, ok := program.Statements[0].(*ast.ForStatement)
+
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ForStatement. got %T", program.Statements[0])
+	}
+
+	if statement.Init != nil {
+		t.Errorf("statement.Init is not nil. got %T", statement.Init)
+	}
+
+	if !checkInfixExpression(t, statement.Condition, "i", "<", 10) {
+		return
+	}
+
+	if statement.Update != nil {
+		t.Errorf("statement.Update is not nil. got %T", statement.Update)
+	}
+
+	if len(statement.Body.Statements) != 1 {
+		t.Errorf("body is not 1 statements. got %d\n", len(statement.Body.Statements))
+	}
+
+	bodyStatement, ok := statement.Body.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", statement.Body.Statements[0])
+	}
+
+	reassignment, ok := bodyStatement.Expression.(*ast.ReassignmentExpression)
+
+	if !ok {
+		t.Fatalf("bodyStatement.Expression is not ast.ReassignmentExpression. got %T", bodyStatement.Expression)
+	}
+
+	if reassignment.String() != "i = (i + 1)" {
+		t.Errorf("reassignment.String() is not 'i = (i + 1)'. got %q", reassignment.String())
+	}
+}
+
 func TestFunctionLiteralParsing(t *testing.T) {
 	program := initializeParserTest(t, "func(x, y) { x + y; }", 1)
 

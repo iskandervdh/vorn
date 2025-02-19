@@ -1,0 +1,31 @@
+let i = 0;
+
+while (i < 10) {
+    if (i == 4) {
+        break;
+    }
+
+    i = i + 1;
+}
+
+print(i); // 4
+
+for (let j = 0; j < 10; j = j + 1) {
+    if (j == 4) {
+        i = j;
+    }
+}
+
+print(i); // 4
+
+let k = 0;
+
+for (; k < 10;) {
+    if (k == 6) {
+        break;
+    }
+
+    k = k + 1;
+}
+
+print(k); // 6

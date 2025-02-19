@@ -12,13 +12,16 @@ type Lexer struct {
 
 	line   int // current line number
 	column int // current column number
+
+	forLoopParentheses int // count of parentheses in a for loop definition
 }
 
 func New(input string) *Lexer {
 	l := &Lexer{
-		input:  input,
-		line:   1,
-		column: 1,
+		input:              input,
+		line:               1,
+		column:             1,
+		forLoopParentheses: -1,
 	}
 
 	// Read a character to initialize l.char
@@ -116,8 +119,24 @@ func (l *Lexer) NextToken() token.Token {
 	case '}':
 		t = token.New(token.RBRACE, l.char, l.line, l.column)
 	case '(':
+		// If we're in a for loop definition, increment the for loop parentheses
+		if l.forLoopParentheses >= 0 {
+			l.forLoopParentheses += 1
+		}
+
 		t = token.New(token.LPAREN, l.char, l.line, l.column)
 	case ')':
+		// If we're in a for loop definition, decrement the for loop parentheses
+		if l.forLoopParentheses > 0 {
+			l.forLoopParentheses -= 1
+		}
+
+		// If we're done with the for loop parentheses, return a semicolon token
+		if l.forLoopParentheses == 0 {
+			l.forLoopParentheses = -1
+			return token.New(token.SEMICOLON, l.char, l.line, l.column)
+		}
+
 		t = token.New(token.RPAREN, l.char, l.line, l.column)
 	case '"':
 		t.Line = l.line
@@ -139,6 +158,11 @@ func (l *Lexer) NextToken() token.Token {
 			t.Column = l.column
 			t.Literal = l.readIdentifier()
 			t.Type = token.LookupIdent(t.Literal)
+
+			// Start counting the for loop parentheses
+			if t.Type == token.FOR {
+				l.forLoopParentheses = 0
+			}
 
 			return t
 		} else if isDigit(l.char) {

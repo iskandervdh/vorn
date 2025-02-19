@@ -100,6 +100,26 @@ func (bs *BlockStatement) GetScopeStatements() []Statement {
 	return bs.Statements
 }
 
+type WhileStatement struct {
+	Token     token.Token // The 'while' token
+	Condition Expression
+
+	Consequence *BlockStatement
+}
+
+func (ws *WhileStatement) statementNode()       {}
+func (ws *WhileStatement) TokenLiteral() string { return ws.Token.Literal }
+func (ws *WhileStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("while")
+	out.WriteString(ws.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(ws.Consequence.String())
+
+	return out.String()
+}
+
 type ForStatement struct {
 	Parent     Scope
 	Token      token.Token
@@ -117,7 +137,11 @@ func (fs *ForStatement) String() string {
 	var out bytes.Buffer
 
 	out.WriteString("for")
+	out.WriteString(fs.Init.String())
+	out.WriteString("; ")
 	out.WriteString(fs.Condition.String())
+	out.WriteString("; ")
+	out.WriteString(fs.Update.String())
 	out.WriteString(" ")
 	out.WriteString(fs.Body.String())
 

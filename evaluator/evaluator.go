@@ -61,8 +61,9 @@ func (e *Evaluator) evalProgram(program *ast.Program, env *object.Environment) o
 	return result
 }
 
-func (e *Evaluator) evalBlockStatement(block *ast.BlockStatement, env *object.Environment) object.Object {
+func (e *Evaluator) evalBlockStatement(block *ast.BlockStatement, parentEnv *object.Environment) object.Object {
 	var result object.Object
+	env := object.NewEnclosedEnvironment(parentEnv)
 
 	for _, statement := range block.Statements {
 		result = e.Eval(statement, env)
@@ -73,6 +74,78 @@ func (e *Evaluator) evalBlockStatement(block *ast.BlockStatement, env *object.En
 			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ || rt == object.BREAK_OBJ || rt == object.CONTINUE_OBJ {
 				return result
 			}
+		}
+	}
+
+	return NULL
+}
+
+func (e *Evaluator) evalWhileStatement(we *ast.WhileStatement, env *object.Environment) object.Object {
+	for {
+		condition := e.Eval(we.Condition, env)
+
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		result := e.evalBlockStatement(we.Consequence, env)
+
+		if result != nil {
+			resultType := result.Type()
+
+			if resultType == object.CONTINUE_OBJ {
+				continue
+			} else if resultType == object.BREAK_OBJ {
+				break
+			} else if resultType == object.RETURN_VALUE_OBJ || resultType == object.ERROR_OBJ {
+				return result
+			}
+		}
+	}
+
+	return NULL
+}
+
+func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *object.Environment) object.Object {
+	if fs.Init != nil {
+		e.Eval(fs.Init, env)
+	}
+
+	for {
+		condition := e.Eval(fs.Condition, env)
+
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		result := e.evalBlockStatement(fs.Body, env)
+
+		if result != nil {
+			resultType := result.Type()
+
+			if resultType == object.CONTINUE_OBJ {
+				if fs.Update != nil {
+					e.Eval(fs.Update, env)
+				}
+
+				continue
+			} else if resultType == object.BREAK_OBJ {
+				break
+			} else if resultType == object.RETURN_VALUE_OBJ || resultType == object.ERROR_OBJ {
+				return result
+			}
+		}
+
+		if fs.Update != nil {
+			e.Eval(fs.Update, env)
 		}
 	}
 
@@ -255,90 +328,6 @@ func (e *Evaluator) evalIfExpression(ie *ast.IfExpression, env *object.Environme
 
 	return NULL
 
-}
-
-func (e *Evaluator) evalWhileExpression(we *ast.WhileExpression, env *object.Environment) object.Object {
-	var result object.Object
-
-	for {
-		condition := e.Eval(we.Condition, env)
-
-		if isError(condition) {
-			return condition
-		}
-
-		if !isTruthy(condition) {
-			break
-		}
-
-		result = e.evalBlockStatement(we.Consequence, env)
-
-		if result != nil {
-			rt := result.Type()
-
-			if rt == object.CONTINUE_OBJ {
-				continue
-			}
-
-			if rt == object.BREAK_OBJ {
-				break
-			}
-
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
-				return result
-			}
-		}
-	}
-
-	return NULL
-}
-
-func (e *Evaluator) evalForExpression(fs *ast.ForStatement, env *object.Environment) object.Object {
-	var result object.Object
-
-	if fs.Init != nil {
-		e.Eval(fs.Init, env)
-	}
-
-	for {
-		condition := e.Eval(fs.Condition, env)
-
-		if isError(condition) {
-			return condition
-		}
-
-		if !isTruthy(condition) {
-			break
-		}
-
-		result = e.evalBlockStatement(fs.Body, env)
-
-		if result != nil {
-			rt := result.Type()
-
-			if rt == object.CONTINUE_OBJ {
-				if fs.Update != nil {
-					e.Eval(fs.Update, env)
-				}
-
-				continue
-			}
-
-			if rt == object.BREAK_OBJ {
-				break
-			}
-
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
-				return result
-			}
-		}
-
-		if fs.Update != nil {
-			e.Eval(fs.Update, env)
-		}
-	}
-
-	return NULL
 }
 
 func isTruthy(obj object.Object) bool {
@@ -544,8 +533,11 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 		env.Set(node.Name.Value, function)
 
+	case *ast.WhileStatement:
+		return e.evalWhileStatement(node, env)
+
 	case *ast.ForStatement:
-		return e.evalForExpression(node, env)
+		return e.evalForStatement(node, env)
 
 	// Expressions
 	case *ast.IntegerLiteral:
@@ -600,9 +592,6 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.IfExpression:
 		return e.evalIfExpression(node, env)
-
-	case *ast.WhileExpression:
-		return e.evalWhileExpression(node, env)
 
 	case *ast.BreakExpression:
 		return &object.Break{}

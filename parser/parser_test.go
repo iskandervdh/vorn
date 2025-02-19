@@ -705,30 +705,24 @@ func TestIfElseExpression(t *testing.T) {
 func TestWhileExpression(t *testing.T) {
 	program := initializeParserTest(t, "while (x < y) { x }", 1)
 
-	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	statement, ok := program.Statements[0].(*ast.WhileStatement)
 
 	if !ok {
-		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+		t.Fatalf("program.Statements[0] is not ast.WhileStatement. got %T", program.Statements[0])
 	}
 
-	expression, ok := statement.Expression.(*ast.WhileExpression)
-
-	if !ok {
-		t.Fatalf("statement.Expression is not ast.WhileExpression. got %T", statement.Expression)
-	}
-
-	if !checkInfixExpression(t, expression.Condition, "x", "<", "y") {
+	if !checkInfixExpression(t, statement.Condition, "x", "<", "y") {
 		return
 	}
 
-	if len(expression.Consequence.Statements) != 1 {
-		t.Errorf("consequence is not 1 statements. got %d\n", len(expression.Consequence.Statements))
+	if len(statement.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statements. got %d\n", len(statement.Consequence.Statements))
 	}
 
-	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
+	consequence, ok := statement.Consequence.Statements[0].(*ast.ExpressionStatement)
 
 	if !ok {
-		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", expression.Consequence.Statements[0])
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", statement.Consequence.Statements[0])
 	}
 
 	if !checkIdentifier(t, consequence.Expression, "x") {

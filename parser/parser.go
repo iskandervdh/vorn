@@ -75,7 +75,6 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
-	p.registerPrefix(token.WHILE, p.parseWhileExpression)
 	p.registerPrefix(token.BREAK, p.parseBreakExpression)
 	p.registerPrefix(token.CONTINUE, p.parseContinueExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
@@ -275,7 +274,9 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.FUNCTION:
 		return p.parseFunction()
 	case token.FOR:
-		return p.parseFor()
+		return p.parseForStatement()
+	case token.WHILE:
+		return p.parseWhileStatement()
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -349,6 +350,82 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	return statement
+}
+
+func (p *Parser) parseWhileStatement() *ast.WhileStatement {
+	whileStatement := &ast.WhileStatement{Token: p.currentToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	whileStatement.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	whileStatement.Consequence = p.parseBlockStatement()
+
+	return whileStatement
+}
+
+func (p *Parser) parseForStatement() *ast.ForStatement {
+	// Initialize for loop scope
+	forStatement := &ast.ForStatement{Token: p.currentToken}
+	forStatement.Parent = p.scope
+	p.scope = forStatement
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+
+	if p.currentTokenIs(token.LET) {
+		forStatement.Init = p.parseVariableStatement()
+	} else if p.currentTokenIs(token.CONST) {
+		forStatement.Init = p.parseVariableStatement()
+	} else if p.currentTokenIs(token.SEMICOLON) {
+		forStatement.Init = nil
+	} else {
+		forStatement.Init = p.parseExpressionStatement()
+	}
+
+	p.nextToken()
+	forStatement.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	p.nextToken()
+
+	if p.currentTokenIs(token.SEMICOLON) {
+		forStatement.Update = nil
+	} else {
+		forStatement.Update = p.parseExpression(LOWEST)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	forStatement.Body = p.parseBlockStatement()
+
+	// Restore the parent scope
+	p.scope = p.scope.GetParentScope()
+
+	return forStatement
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
@@ -539,82 +616,6 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	}
 
 	return expression
-}
-
-func (p *Parser) parseWhileExpression() ast.Expression {
-	expression := &ast.WhileExpression{Token: p.currentToken}
-
-	if !p.expectPeek(token.LPAREN) {
-		return nil
-	}
-
-	p.nextToken()
-	expression.Condition = p.parseExpression(LOWEST)
-
-	if !p.expectPeek(token.RPAREN) {
-		return nil
-	}
-
-	if !p.expectPeek(token.LBRACE) {
-		return nil
-	}
-
-	expression.Consequence = p.parseBlockStatement()
-
-	return expression
-}
-
-func (p *Parser) parseFor() ast.Statement {
-	// Initialize for loop scope
-	forStatement := ast.ForStatement{Token: p.currentToken}
-	forStatement.Parent = p.scope
-	p.scope = &forStatement
-
-	if !p.expectPeek(token.LPAREN) {
-		return nil
-	}
-
-	p.nextToken()
-
-	if p.currentTokenIs(token.LET) {
-		forStatement.Init = p.parseVariableStatement()
-	} else if p.currentTokenIs(token.CONST) {
-		forStatement.Init = p.parseVariableStatement()
-	} else if p.currentTokenIs(token.SEMICOLON) {
-		forStatement.Init = nil
-	} else {
-		forStatement.Init = p.parseExpressionStatement()
-	}
-
-	p.nextToken()
-	forStatement.Condition = p.parseExpression(LOWEST)
-
-	if !p.expectPeek(token.SEMICOLON) {
-		return nil
-	}
-
-	p.nextToken()
-
-	if p.currentTokenIs(token.SEMICOLON) {
-		forStatement.Update = nil
-	} else {
-		forStatement.Update = p.parseExpression(LOWEST)
-	}
-
-	if !p.expectPeek(token.RPAREN) {
-		return nil
-	}
-
-	if !p.expectPeek(token.LBRACE) {
-		return nil
-	}
-
-	forStatement.Body = p.parseBlockStatement()
-
-	// Restore the parent scope
-	p.scope = p.scope.GetParentScope()
-
-	return &forStatement
 }
 
 func (p *Parser) parseBreakExpression() ast.Expression {

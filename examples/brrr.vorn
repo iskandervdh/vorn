@@ -17,10 +17,9 @@ while (n < 30) {
 func fibBetter(n) {
     let a = 0;
     let b = 1;
-    let temp = a;
 
     while (n > 0) {
-        temp = a;
+        let temp = a;
         a = b;
         b = temp + b;
 

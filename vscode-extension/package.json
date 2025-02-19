@@ -3,7 +3,7 @@
   "displayName": "vorn",
   "description": "Language support for the vorn programming language",
   "publisher": "vorn-lang",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.70.0"
   },
@@ -22,8 +22,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./images/vorn.svg",
-          "dark": "./images/vorn.svg"
+          "light": "./images/vorn.png",
+          "dark": "./images/vorn.png"
         }
       }
     ],

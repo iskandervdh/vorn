@@ -1,0 +1,39 @@
+func fib(n) {
+    if (n <= 1) {
+        return n;
+    }
+
+    return fib(n - 1) + fib(n - 2);
+}
+
+let n = 0;
+
+while (n < 30) {
+    print(fib(n));
+
+    n = n + 1;
+}
+
+func fibBetter(n) {
+    let a = 0;
+    let b = 1;
+    let temp = a;
+
+    while (n > 0) {
+        temp = a;
+        a = b;
+        b = temp + b;
+
+        n = n - 1;
+    }
+
+    return a;
+}
+
+n = 0;
+
+while (n < 80) {
+    print(fibBetter(n));
+
+    n = n + 1;
+}

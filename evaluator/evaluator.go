@@ -70,7 +70,7 @@ func (e *Evaluator) evalBlockStatement(block *ast.BlockStatement, env *object.En
 		if result != nil {
 			rt := result.Type()
 
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ || rt == object.BREAK_OBJ || rt == object.CONTINUE_OBJ {
 				return result
 			}
 		}
@@ -255,6 +255,90 @@ func (e *Evaluator) evalIfExpression(ie *ast.IfExpression, env *object.Environme
 
 	return NULL
 
+}
+
+func (e *Evaluator) evalWhileExpression(we *ast.WhileExpression, env *object.Environment) object.Object {
+	var result object.Object
+
+	for {
+		condition := e.Eval(we.Condition, env)
+
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		result = e.evalBlockStatement(we.Consequence, env)
+
+		if result != nil {
+			rt := result.Type()
+
+			if rt == object.CONTINUE_OBJ {
+				continue
+			}
+
+			if rt == object.BREAK_OBJ {
+				break
+			}
+
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+				return result
+			}
+		}
+	}
+
+	return NULL
+}
+
+func (e *Evaluator) evalForExpression(fs *ast.ForStatement, env *object.Environment) object.Object {
+	var result object.Object
+
+	if fs.Init != nil {
+		e.Eval(fs.Init, env)
+	}
+
+	for {
+		condition := e.Eval(fs.Condition, env)
+
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		result = e.evalBlockStatement(fs.Body, env)
+
+		if result != nil {
+			rt := result.Type()
+
+			if rt == object.CONTINUE_OBJ {
+				if fs.Update != nil {
+					e.Eval(fs.Update, env)
+				}
+
+				continue
+			}
+
+			if rt == object.BREAK_OBJ {
+				break
+			}
+
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+				return result
+			}
+		}
+
+		if fs.Update != nil {
+			e.Eval(fs.Update, env)
+		}
+	}
+
+	return NULL
 }
 
 func isTruthy(obj object.Object) bool {
@@ -460,6 +544,9 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 		env.Set(node.Name.Value, function)
 
+	case *ast.ForStatement:
+		return e.evalForExpression(node, env)
+
 	// Expressions
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -513,6 +600,15 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.IfExpression:
 		return e.evalIfExpression(node, env)
+
+	case *ast.WhileExpression:
+		return e.evalWhileExpression(node, env)
+
+	case *ast.BreakExpression:
+		return &object.Break{}
+
+	case *ast.ContinueExpression:
+		return &object.Continue{}
 
 	case *ast.Identifier:
 		return e.evalIdentifier(node, env)

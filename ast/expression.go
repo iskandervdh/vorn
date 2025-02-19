@@ -87,6 +87,42 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+type WhileExpression struct {
+	Token     token.Token // The 'while' token
+	Condition Expression
+
+	Consequence *BlockStatement
+}
+
+func (we *WhileExpression) expressionNode()      {}
+func (we *WhileExpression) TokenLiteral() string { return we.Token.Literal }
+func (we *WhileExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("while")
+	out.WriteString(we.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(we.Consequence.String())
+
+	return out.String()
+}
+
+type BreakExpression struct {
+	Token token.Token // The 'break' token
+}
+
+func (be *BreakExpression) expressionNode()      {}
+func (be *BreakExpression) TokenLiteral() string { return be.Token.Literal }
+func (be *BreakExpression) String() string       { return be.Token.Literal }
+
+type ContinueExpression struct {
+	Token token.Token // The 'continue' token
+}
+
+func (ce *ContinueExpression) expressionNode()      {}
+func (ce *ContinueExpression) TokenLiteral() string { return ce.Token.Literal }
+func (ce *ContinueExpression) String() string       { return ce.Token.Literal }
+
 type CallExpression struct {
 	Token     token.Token // The '(' token
 	Function  Expression  // Identifier or FunctionLiteral

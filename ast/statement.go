@@ -100,6 +100,38 @@ func (bs *BlockStatement) GetScopeStatements() []Statement {
 	return bs.Statements
 }
 
+type ForStatement struct {
+	Parent     Scope
+	Token      token.Token
+	Statements []Statement
+
+	Init      Statement
+	Condition Expression
+	Update    Expression
+	Body      *BlockStatement
+}
+
+func (fs *ForStatement) statementNode()       {}
+func (fs *ForStatement) TokenLiteral() string { return fs.Token.Literal }
+func (fs *ForStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("for")
+	out.WriteString(fs.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(fs.Body.String())
+
+	return out.String()
+}
+
+func (fs *ForStatement) GetParentScope() Scope {
+	return fs.Parent
+}
+
+func (fs *ForStatement) GetScopeStatements() []Statement {
+	return fs.Statements
+}
+
 type FunctionStatement struct {
 	Token      token.Token // the 'func' token
 	Name       *Identifier

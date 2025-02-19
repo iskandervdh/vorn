@@ -28,7 +28,7 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	}
 
 	if result.Value != expected {
-		t.Errorf("object has wrong value. got %d, want=%d", result.Value, expected)
+		t.Errorf("object has wrong value. got %d, want %d", result.Value, expected)
 		return false
 	}
 
@@ -44,7 +44,7 @@ func testFloatObject(t *testing.T, obj object.Object, expected float64) bool {
 	}
 
 	if result.Value != expected {
-		t.Errorf("object has wrong value. got %g, want=%g", result.Value, expected)
+		t.Errorf("object has wrong value. got %g, want %g", result.Value, expected)
 		return false
 	}
 
@@ -60,7 +60,7 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	}
 
 	if result.Value != expected {
-		t.Errorf("object has wrong value. got %T, want=%t", result.Value, expected)
+		t.Errorf("object has wrong value. got %T, want %t", result.Value, expected)
 		return false
 	}
 
@@ -76,7 +76,7 @@ func testStringObject(t *testing.T, obj object.Object, expected string) bool {
 	}
 
 	if result.Value != expected {
-		t.Errorf("object has wrong value. got %q, want=%q", result.Value, expected)
+		t.Errorf("object has wrong value. got %q, want %q", result.Value, expected)
 		return false
 	}
 
@@ -252,6 +252,47 @@ func TestIfElseExpressions(t *testing.T) {
 		} else {
 			testNullObject(t, evaluated)
 		}
+	}
+}
+
+func TestWhileExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"let i = 0; while (i < 10) { i = i + 1; }; i;", 10},
+		{"let i = 0; while (i < 10) { i = i + 1; if (i == 4) { break; } }; i;", 4},
+		{"let x = 0; let i = 0; while (i < 4) { i = i + 1; if (i != 3) { continue; } x = i; }; x;", 3},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		integer, ok := test.expected.(int)
+
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
+func TestFor(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let x = 0; for (let i = 0; i < 10; i = i + 1) { x = x + 1; }; x;", 10},
+		{"let x = 0; for (let i = 0; i < 10; i = i + 1) { if (i == 4) { x = i; break; } }; x;", 4},
+		{"let x = 0; for (let i = 0; i < 4; i = i + 1) { if (i != 3) { continue; } x = i; }; x;", 3},
+		{"let i = 0; for (; i < 10; i = i + 1) { }; i;", 10},
+		{"let i = 0; for (; i < 10;) { i = i + 1; }; i;", 10},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+
+		testIntegerObject(t, evaluated, test.expected)
 	}
 }
 

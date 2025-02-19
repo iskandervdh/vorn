@@ -13,13 +13,14 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 * Comments
 * Arrays and Hashes
 * If statements
+* For and While loops
 * Functions
-* A few built-in functions (print, pow, sqrt, etc.)
+* Built-in functions (See [evaluator.go](evaluator/evaluator.go#L23) for a complete list)
 * A REPL
 
 ## Planned features
 
-* Loops
+* Show line numbers in all parser and evaluator error messages
 * Error handling
 * Ternaries
 * Modules/Namespaces/Importing

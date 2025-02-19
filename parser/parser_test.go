@@ -21,10 +21,7 @@ func initializeParserTest(t *testing.T, input string, expectedStatementCount int
 	}
 
 	if expectedStatementCount > 0 && len(program.Statements) != expectedStatementCount {
-		t.Fatalf("program.Statements does not contain %d statements. got %d",
-			expectedStatementCount,
-			len(program.Statements),
-		)
+		t.Fatalf("program.Statements does not contain %d statements. got %d", expectedStatementCount, len(program.Statements))
 	}
 
 	return program
@@ -202,25 +199,21 @@ func checkBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 	return true
 }
 
-func checkLiteralExpression(
-	t *testing.T,
-	exp ast.Expression,
-	expected interface{},
-) bool {
+func checkLiteralExpression(t *testing.T, expression ast.Expression, expected interface{}) bool {
 	switch v := expected.(type) {
 	case int:
-		return checkIntegerLiteral(t, exp, int64(v))
+		return checkIntegerLiteral(t, expression, int64(v))
 	case int64:
-		return checkIntegerLiteral(t, exp, v)
+		return checkIntegerLiteral(t, expression, v)
 	case float64:
-		return checkFloatLiteral(t, exp, v)
+		return checkFloatLiteral(t, expression, v)
 	case string:
-		return checkIdentifier(t, exp, v)
+		return checkIdentifier(t, expression, v)
 	case bool:
-		return checkBooleanLiteral(t, exp, v)
+		return checkBooleanLiteral(t, expression, v)
 	}
 
-	t.Errorf("type of exp not handled. got %T", exp)
+	t.Errorf("type of exp not handled. got %T", expression)
 	return false
 }
 
@@ -335,8 +328,7 @@ func TestIdentifierExpression(t *testing.T) {
 	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
 
 	if !ok {
-		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T",
-			program.Statements[0])
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
 	}
 
 	ident, ok := statement.Expression.(*ast.Identifier)
@@ -350,8 +342,7 @@ func TestIdentifierExpression(t *testing.T) {
 	}
 
 	if ident.TokenLiteral() != "foobar" {
-		t.Errorf("ident.TokenLiteral not %s. got '%s'", "foobar",
-			ident.TokenLiteral())
+		t.Errorf("ident.TokenLiteral not %s. got '%s'", "foobar", ident.TokenLiteral())
 	}
 }
 
@@ -630,82 +621,117 @@ func TestBooleanExpression(t *testing.T) {
 func TestIfExpression(t *testing.T) {
 	program := initializeParserTest(t, "if (x < y) { x }", 1)
 
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+
 	if !ok {
 		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
 	}
-	exp, ok := stmt.Expression.(*ast.IfExpression)
+
+	expression, ok := statement.Expression.(*ast.IfExpression)
+
 	if !ok {
-		t.Fatalf("stmt.Expression is not ast.IfExpression. got %T",
-			stmt.Expression)
+		t.Fatalf("statement.Expression is not ast.IfExpression. got %T", statement.Expression)
 	}
-	if !checkInfixExpression(t, exp.Condition, "x", "<", "y") {
+
+	if !checkInfixExpression(t, expression.Condition, "x", "<", "y") {
 		return
 	}
-	if len(exp.Consequence.Statements) != 1 {
-		t.Errorf("consequence is not 1 statements. got %d\n",
-			len(exp.Consequence.Statements))
+
+	if len(expression.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statements. got %d\n", len(expression.Consequence.Statements))
 	}
 
-	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
 
 	if !ok {
-		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T",
-			exp.Consequence.Statements[0])
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", expression.Consequence.Statements[0])
 	}
 	if !checkIdentifier(t, consequence.Expression, "x") {
 		return
 	}
-	if exp.Alternative != nil {
-		t.Errorf("exp.Alternative.Statements was not nil. got %+v", exp.Alternative)
+	if expression.Alternative != nil {
+		t.Errorf("exp.Alternative.Statements was not nil. got %+v", expression.Alternative)
 	}
 }
 
 func TestIfElseExpression(t *testing.T) {
 	program := initializeParserTest(t, "if (x < y) { x } else { y }", 1)
 
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
 
 	if !ok {
-		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T",
-			program.Statements[0])
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
 	}
 
-	exp, ok := stmt.Expression.(*ast.IfExpression)
+	expression, ok := statement.Expression.(*ast.IfExpression)
 
 	if !ok {
-		t.Fatalf("stmt.Expression is not ast.IfExpression. got %T", stmt.Expression)
+		t.Fatalf("statement.Expression is not ast.IfExpression. got %T", statement.Expression)
 	}
 
-	if !checkInfixExpression(t, exp.Condition, "x", "<", "y") {
+	if !checkInfixExpression(t, expression.Condition, "x", "<", "y") {
 		return
 	}
 
-	if len(exp.Consequence.Statements) != 1 {
-		t.Errorf("consequence is not 1 statements. got %d\n", len(exp.Consequence.Statements))
+	if len(expression.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statements. got %d\n", len(expression.Consequence.Statements))
 	}
 
-	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
+
 	if !ok {
-		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", exp.Consequence.Statements[0])
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", expression.Consequence.Statements[0])
 	}
 
 	if !checkIdentifier(t, consequence.Expression, "x") {
 		return
 	}
 
-	if len(exp.Alternative.Statements) != 1 {
-		t.Errorf("exp.Alternative.Statements does not contain 1 statements. got %d\n",
-			len(exp.Alternative.Statements))
+	if len(expression.Alternative.Statements) != 1 {
+		t.Errorf("exp.Alternative.Statements does not contain 1 statements. got %d\n", len(expression.Alternative.Statements))
 	}
 
-	alternative, ok := exp.Alternative.Statements[0].(*ast.ExpressionStatement)
+	alternative, ok := expression.Alternative.Statements[0].(*ast.ExpressionStatement)
+
 	if !ok {
-		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T",
-			exp.Alternative.Statements[0])
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", expression.Alternative.Statements[0])
 	}
 
 	if !checkIdentifier(t, alternative.Expression, "y") {
+		return
+	}
+}
+
+func TestWhileExpression(t *testing.T) {
+	program := initializeParserTest(t, "while (x < y) { x }", 1)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+	}
+
+	expression, ok := statement.Expression.(*ast.WhileExpression)
+
+	if !ok {
+		t.Fatalf("statement.Expression is not ast.WhileExpression. got %T", statement.Expression)
+	}
+
+	if !checkInfixExpression(t, expression.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(expression.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statements. got %d\n", len(expression.Consequence.Statements))
+	}
+
+	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", expression.Consequence.Statements[0])
+	}
+
+	if !checkIdentifier(t, consequence.Expression, "x") {
 		return
 	}
 }
@@ -722,7 +748,7 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	function, ok := statement.Expression.(*ast.FunctionLiteral)
 
 	if !ok {
-		t.Fatalf("stmt.Expression is not ast.FunctionLiteral. got %T", statement.Expression)
+		t.Fatalf("statement.Expression is not ast.FunctionLiteral. got %T", statement.Expression)
 	}
 	if len(function.Parameters) != 2 {
 		t.Fatalf("function literal parameters wrong. want 2, got %d\n", len(function.Parameters))
@@ -735,13 +761,13 @@ func TestFunctionLiteralParsing(t *testing.T) {
 		t.Fatalf("function.Body.Statements has not 1 statements. got %d\n", len(function.Body.Statements))
 	}
 
-	bodyStmt, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
+	bodyStatement, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
 
 	if !ok {
-		t.Fatalf("function body stmt is not ast.ExpressionStatement. got %T", function.Body.Statements[0])
+		t.Fatalf("function body statement is not ast.ExpressionStatement. got %T", function.Body.Statements[0])
 	}
 
-	checkInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+	checkInfixExpression(t, bodyStatement.Expression, "x", "+", "y")
 }
 
 func TestFunctionParameterParsing(t *testing.T) {
@@ -776,14 +802,13 @@ func TestCallExpressionParsing(t *testing.T) {
 	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
 
 	if !ok {
-		t.Fatalf("stmt is not ast.ExpressionStatement. got %T",
-			program.Statements[0])
+		t.Fatalf("statement is not ast.ExpressionStatement. got %T", program.Statements[0])
 	}
 
 	expression, ok := statement.Expression.(*ast.CallExpression)
 
 	if !ok {
-		t.Fatalf("stmt.Expression is not ast.CallExpression. got %T", statement.Expression)
+		t.Fatalf("statement.Expression is not ast.CallExpression. got %T", statement.Expression)
 	}
 
 	if !checkIdentifier(t, expression.Function, "add") {

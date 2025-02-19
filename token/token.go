@@ -59,18 +59,26 @@ const (
 	IF       = "IF"
 	ELSE     = "ELSE"
 	RETURN   = "RETURN"
+	WHILE    = "WHILE"
+	FOR      = "FOR"
+	BREAK    = "BREAK"
+	CONTINUE = "CONTINUE"
 )
 
 var keywords = map[string]TokenType{
-	"func":   FUNCTION,
-	"const":  CONST,
-	"let":    LET,
-	"true":   TRUE,
-	"false":  FALSE,
-	"null":   NULL,
-	"if":     IF,
-	"else":   ELSE,
-	"return": RETURN,
+	"func":     FUNCTION,
+	"const":    CONST,
+	"let":      LET,
+	"true":     TRUE,
+	"false":    FALSE,
+	"null":     NULL,
+	"if":       IF,
+	"else":     ELSE,
+	"return":   RETURN,
+	"while":    WHILE,
+	"for":      FOR,
+	"break":    BREAK,
+	"continue": CONTINUE,
 }
 
 func New(tokenType TokenType, ch byte, line int, column int) Token {

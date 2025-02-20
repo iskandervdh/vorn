@@ -20,7 +20,6 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 
 ## Planned features
 
-* Show line numbers in all parser and evaluator error messages
 * Error handling
 * Ternaries
 * Modules/Namespaces/Importing

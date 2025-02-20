@@ -33,14 +33,18 @@ func (e *Evaluator) builtinRange(args ...object.Object) object.Object {
 	start := args[0].(*object.Integer).Value
 	end := start
 
-	if len(args) == 2 {
+	if len(args) == 1 {
+		if start < 0 {
+			return newError("argument to `range` must be non-negative, got %d", start)
+		}
+
+		start = 0
+	} else {
 		if args[1].Type() != object.INTEGER_OBJ {
 			return newError("second argument to `range` must be INTEGER, got %s", args[1].Type())
 		}
 
 		end = args[1].(*object.Integer).Value
-	} else {
-		start = 0
 	}
 
 	elementsLength := end - start
@@ -128,14 +132,18 @@ func (e *Evaluator) builtinBool(args ...object.Object) object.Object {
 	switch arg := args[0].(type) {
 	case *object.Boolean:
 		return arg
+	case *object.Null:
+		return FALSE
 	case *object.Integer:
-		return &object.Boolean{Value: arg.Value != 0}
+		return e.nativeBoolToBooleanObject(arg.Value != 0)
 	case *object.Float:
-		return &object.Boolean{Value: arg.Value != 0}
+		return e.nativeBoolToBooleanObject(arg.Value != 0)
 	case *object.String:
-		return &object.Boolean{Value: arg.Value != ""}
+		return e.nativeBoolToBooleanObject(arg.Value != "")
 	case *object.Array:
-		return &object.Boolean{Value: len(arg.Elements) != 0}
+		return e.nativeBoolToBooleanObject(len(arg.Elements) != 0)
+	case *object.Hash:
+		return e.nativeBoolToBooleanObject(len(arg.Pairs) != 0)
 	default:
 		return newError("argument to `bool` not supported, got %s", args[0].Type())
 	}

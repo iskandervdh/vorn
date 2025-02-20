@@ -44,6 +44,48 @@ func TestType(t *testing.T) {
 	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
 }
 
+func TestRange(t *testing.T) {
+	input := `range(5)`
+
+	testArrayObject(t, testEval(input), []string{"0", "1", "2", "3", "4"})
+
+	input = `range(0)`
+
+	testArrayObject(t, testEval(input), []string{})
+
+	input = `range(5, 10)`
+
+	testArrayObject(t, testEval(input), []string{"5", "6", "7", "8", "9"})
+
+	input = `range(4, -3)`
+
+	testArrayObject(t, testEval(input), []string{"4", "3", "2", "1", "0", "-1", "-2"})
+
+	input = `range(4, 4)`
+
+	testArrayObject(t, testEval(input), []string{})
+
+	input = `range(-2, 3)`
+
+	testArrayObject(t, testEval(input), []string{"-2", "-1", "0", "1", "2"})
+
+	input = `range(-1)`
+
+	testErrorObject(t, testEval(input), "argument to `range` must be non-negative, got -1")
+
+	input = `range("hello")`
+
+	testErrorObject(t, testEval(input), "first argument to `range` must be INTEGER, got STRING")
+
+	input = `range()`
+
+	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1 or 2")
+
+	input = `range(1, "test")`
+
+	testErrorObject(t, testEval(input), "second argument to `range` must be INTEGER, got STRING")
+}
+
 func TestInt(t *testing.T) {
 	input := `int(1)`
 
@@ -132,6 +174,72 @@ func TestString(t *testing.T) {
 	input = `string()`
 
 	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
+}
+
+func TestBool(t *testing.T) {
+	input := `bool(true)`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool(false)`
+
+	testBooleanObject(t, testEval(input), false)
+
+	input = `bool(1)`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool(0)`
+
+	testBooleanObject(t, testEval(input), false)
+
+	input = `bool(1.0)`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool(0.0)`
+
+	testBooleanObject(t, testEval(input), false)
+
+	input = `bool("true")`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool("false")`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool("hello")`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool([1])`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool([])`
+
+	testBooleanObject(t, testEval(input), false)
+
+	input = `bool({1: 1})`
+
+	testBooleanObject(t, testEval(input), true)
+
+	input = `bool({})`
+
+	testBooleanObject(t, testEval(input), false)
+
+	input = `bool(null)`
+
+	testBooleanObject(t, testEval(input), false)
+
+	input = `bool()`
+
+	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
+
+	input = `bool(continue)`
+
+	testErrorObject(t, testEval(input), "argument to `bool` not supported, got CONTINUE")
 }
 
 func TestSplit(t *testing.T) {
@@ -423,6 +531,32 @@ func TestPrint(t *testing.T) {
 	input = `print("hello", "world", 1)`
 
 	testNullObject(t, testEval(input))
+}
+
+func TestAbs(t *testing.T) {
+	input := `abs(1)`
+
+	testIntegerObject(t, testEval(input), 1)
+
+	input = `abs(-1)`
+
+	testIntegerObject(t, testEval(input), 1)
+
+	input = `abs(1.0)`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `abs(-1.0)`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `abs("test")`
+
+	testErrorObject(t, testEval(input), "argument to `abs` must be INTEGER or FLOAT, got STRING")
+
+	input = `abs()`
+
+	testErrorObject(t, testEval(input), "wrong number of arguments. got 0, want 1")
 }
 
 func TestPow(t *testing.T) {

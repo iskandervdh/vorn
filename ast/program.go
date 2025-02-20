@@ -30,6 +30,22 @@ func (p *Program) String() string {
 	return out.String()
 }
 
+func (p *Program) Line() int {
+	if len(p.Statements) > 0 {
+		return p.Statements[0].Line()
+	} else {
+		return 0
+	}
+}
+
+func (p *Program) Column() int {
+	if len(p.Statements) > 0 {
+		return p.Statements[0].Column()
+	} else {
+		return 0
+	}
+}
+
 func (p *Program) GetParentScope() Scope {
 	return nil
 }

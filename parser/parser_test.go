@@ -1,7 +1,9 @@
 package parser
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
@@ -1117,5 +1119,120 @@ NAME = "ME";`
 
 	if errors[0] != expectedError {
 		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}
+
+func TestParserPrintErrors(t *testing.T) {
+	input := `let x 5;`
+
+	l := lexer.New(input)
+	p := New(l)
+	p.ParseProgram()
+
+	r, w := io.Pipe()
+
+	go func() {
+		defer w.Close()
+		PrintErrors(w, p.Errors())
+	}()
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	r.Close()
+
+	expected := "Syntax errors:\n[1:8]: expected '=', got INT instead\n"
+
+	if buf.String() != expected {
+		t.Errorf("Expected error message to be %q, got %q", expected, buf.String())
+	}
+}
+
+func TestLowestPrecedence(t *testing.T) {
+	program := "// This is a comment"
+	l := lexer.New(program)
+	p := New(l)
+
+	precedence := p.currentPrecedence()
+
+	if precedence != LOWEST {
+		t.Errorf("Expected precedence to be %d, got %d", LOWEST, precedence)
+	}
+}
+
+func TestParseIntegerLiteralError(t *testing.T) {
+	input := "\"Test\";"
+
+	l := lexer.New(input)
+	p := New(l)
+
+	p.parseIntegerLiteral()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Fatal("Expected a parser error")
+	}
+
+	expectedError := "[1:2]: could not parse \"Test\" as integer"
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}
+
+func TestParseNull(t *testing.T) {
+	input := "null;"
+
+	program := initializeParserTest(t, input, 1)
+
+	statement := program.Statements[0].(*ast.ExpressionStatement)
+	null, ok := statement.Expression.(*ast.NullLiteral)
+
+	if !ok {
+		t.Fatalf("exp is not ast.NullLiteral. got %T", statement.Expression)
+	}
+
+	if null.TokenLiteral() != "null" {
+		t.Errorf("null.TokenLiteral not 'null'. got %q", null.TokenLiteral())
+	}
+}
+
+func TestParseFloatLiteralError(t *testing.T) {
+	input := "\"Test\";"
+
+	l := lexer.New(input)
+	p := New(l)
+
+	p.parseFloatLiteral()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Fatal("Expected a parser error")
+	}
+
+	expectedError := "[1:2]: could not parse \"Test\" as float"
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}
+
+func TestParseBreakContinue(t *testing.T) {
+	tests := []struct {
+		input string
+	}{
+		{"break;"},
+		{"continue;"},
+	}
+
+	for _, test := range tests {
+		program := initializeParserTest(t, test.input, 1)
+
+		statement := program.Statements[0].(*ast.ExpressionStatement)
+
+		if statement.Expression.TokenLiteral() != test.input[:len(test.input)-1] {
+			t.Errorf("statement.Expression.TokenLiteral not '%s'. got %q", test.input[:len(test.input)-1], statement.Expression.TokenLiteral())
+		}
 	}
 }

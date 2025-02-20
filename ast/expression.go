@@ -20,6 +20,8 @@ type Identifier struct {
 func (i *Identifier) expressionNode()      {}
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
 func (i *Identifier) String() string       { return i.Value }
+func (i *Identifier) Line() int            { return i.Token.Line }
+func (i *Identifier) Column() int          { return i.Token.Column }
 
 type PrefixExpression struct {
 	Token    token.Token // The prefix token, e.g. !
@@ -39,6 +41,8 @@ func (pe *PrefixExpression) String() string {
 
 	return out.String()
 }
+func (pe *PrefixExpression) Line() int   { return pe.Token.Line }
+func (pe *PrefixExpression) Column() int { return pe.Token.Column }
 
 type InfixExpression struct {
 	Token    token.Token // The operator token, e.g. +
@@ -60,6 +64,8 @@ func (ie *InfixExpression) String() string {
 
 	return out.String()
 }
+func (ie *InfixExpression) Line() int   { return ie.Token.Line }
+func (ie *InfixExpression) Column() int { return ie.Token.Column }
 
 type IfExpression struct {
 	Token     token.Token // The 'if' token
@@ -86,6 +92,8 @@ func (ie *IfExpression) String() string {
 
 	return out.String()
 }
+func (ie *IfExpression) Line() int   { return ie.Token.Line }
+func (ie *IfExpression) Column() int { return ie.Token.Column }
 
 type BreakExpression struct {
 	Token token.Token // The 'break' token
@@ -94,6 +102,8 @@ type BreakExpression struct {
 func (be *BreakExpression) expressionNode()      {}
 func (be *BreakExpression) TokenLiteral() string { return be.Token.Literal }
 func (be *BreakExpression) String() string       { return be.Token.Literal }
+func (be *BreakExpression) Line() int            { return be.Token.Line }
+func (be *BreakExpression) Column() int          { return be.Token.Column }
 
 type ContinueExpression struct {
 	Token token.Token // The 'continue' token
@@ -102,6 +112,8 @@ type ContinueExpression struct {
 func (ce *ContinueExpression) expressionNode()      {}
 func (ce *ContinueExpression) TokenLiteral() string { return ce.Token.Literal }
 func (ce *ContinueExpression) String() string       { return ce.Token.Literal }
+func (ce *ContinueExpression) Line() int            { return ce.Token.Line }
+func (ce *ContinueExpression) Column() int          { return ce.Token.Column }
 
 type CallExpression struct {
 	Token     token.Token // The '(' token
@@ -127,6 +139,8 @@ func (ce *CallExpression) String() string {
 
 	return out.String()
 }
+func (ce *CallExpression) Line() int   { return ce.Token.Line }
+func (ce *CallExpression) Column() int { return ce.Token.Column }
 
 type IndexExpression struct {
 	Token token.Token // The [ token
@@ -147,6 +161,8 @@ func (ie *IndexExpression) String() string {
 
 	return out.String()
 }
+func (ie *IndexExpression) Line() int   { return ie.Token.Line }
+func (ie *IndexExpression) Column() int { return ie.Token.Column }
 
 type ReassignmentExpression struct {
 	Token token.Token // The = token
@@ -165,3 +181,5 @@ func (rs *ReassignmentExpression) String() string {
 
 	return out.String()
 }
+func (rs *ReassignmentExpression) Line() int   { return rs.Token.Line }
+func (rs *ReassignmentExpression) Column() int { return rs.Token.Column }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/iskandervdh/vorn/ast"
 	"github.com/iskandervdh/vorn/object"
+	"github.com/iskandervdh/vorn/token"
 )
 
 type Evaluator struct {
@@ -12,9 +13,30 @@ type Evaluator struct {
 }
 
 var (
-	NULL  = &object.Null{}
-	TRUE  = &object.Boolean{Value: true}
-	FALSE = &object.Boolean{Value: false}
+	NULL = object.NewNull(&ast.NullLiteral{
+		Token: token.Token{
+			Type:    "null",
+			Literal: "null",
+		},
+	})
+	TRUE = &object.Boolean{AstNode: &ast.BooleanLiteral{
+		Token: token.Token{
+			Type:    "true",
+			Literal: "true",
+			Line:    1,
+			Column:  1,
+		},
+		Value: true,
+	}, Value: true}
+	FALSE = &object.Boolean{AstNode: &ast.BooleanLiteral{
+		Token: token.Token{
+			Type:    "false",
+			Literal: "false",
+			Line:    1,
+			Column:  1,
+		},
+		Value: false,
+	}, Value: false}
 )
 
 func New() *Evaluator {
@@ -193,14 +215,14 @@ func (e *Evaluator) evalMinusPrefixOperatorExpression(right object.Object) objec
 	switch right.Type() {
 	case object.INTEGER_OBJ:
 		value := right.(*object.Integer).Value
-		return &object.Integer{Value: -value}
+		return object.NewInteger(right.Node(), -value)
 
 	case object.FLOAT_OBJ:
 		value := right.(*object.Float).Value
-		return &object.Float{Value: -value}
+		return object.NewFloat(right.Node(), -value)
 
 	default:
-		return newError("unknown operator: -%s", right.Type())
+		return newError(right.Node(), "unknown operator: -%s", right.Type())
 	}
 }
 
@@ -211,7 +233,7 @@ func (e *Evaluator) evalPrefixExpression(operator string, right object.Object) o
 	case "-":
 		return e.evalMinusPrefixOperatorExpression(right)
 	default:
-		return newError("unknown operator: %s%s", operator, right.Type())
+		return newError(right.Node(), "unknown operator: %s%s", operator, right.Type())
 	}
 }
 
@@ -221,13 +243,13 @@ func (e *Evaluator) evalIntegerInfixExpression(operator string, left object.Obje
 
 	switch operator {
 	case "+":
-		return &object.Integer{Value: leftVal + rightVal}
+		return object.NewInteger(left.Node(), leftVal+rightVal)
 	case "-":
-		return &object.Integer{Value: leftVal - rightVal}
+		return object.NewInteger(left.Node(), leftVal-rightVal)
 	case "*":
-		return &object.Integer{Value: leftVal * rightVal}
+		return object.NewInteger(left.Node(), leftVal*rightVal)
 	case "/":
-		return &object.Float{Value: float64(leftVal) / float64(rightVal)}
+		return object.NewFloat(left.Node(), float64(leftVal)/float64(rightVal))
 	case "<":
 		return e.nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
@@ -241,7 +263,8 @@ func (e *Evaluator) evalIntegerInfixExpression(operator string, left object.Obje
 	case "!=":
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		// TODO
+		return newError(right.Node(), "unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -271,7 +294,7 @@ func (e *Evaluator) evalFloatInfixExpression(operator string, left object.Object
 	case "!=":
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		return newError(right.Node(), "unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -292,13 +315,14 @@ func (e *Evaluator) evalNumberInfixExpression(operator string, left object.Objec
 		return e.evalFloatInfixExpression(operator, left, &object.Float{Value: right})
 
 	default:
-		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+		// TODO
+		return newError(right.Node(), "type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
 func (e *Evaluator) evalStringInfixExpression(operator string, left, right object.Object) object.Object {
 	if operator != "+" {
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		return newError(right.Node(), "unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 
 	leftVal := left.(*object.String).Value
@@ -322,10 +346,10 @@ func (e *Evaluator) evalInfixExpression(operator string, left, right object.Obje
 		return e.nativeBoolToBooleanObject(left != right)
 
 	case left.Type() != right.Type():
-		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+		return newError(right.Node(), "type mismatch: %s %s %s", left.Type(), operator, right.Type())
 
 	default:
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		return newError(right.Node(), "unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -359,8 +383,11 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func newError(format string, a ...interface{}) *object.Error {
-	return &object.Error{Message: fmt.Sprintf(format, a...)}
+func newError(node ast.Node, format string, a ...interface{}) *object.Error {
+	location := fmt.Sprintf("[%d:%d]", node.Line(), node.Column())
+	message := location + " " + fmt.Sprintf(format, a...)
+
+	return object.NewError(node, message)
 }
 
 func isError(obj object.Object) bool {
@@ -380,7 +407,7 @@ func (e *Evaluator) evalIdentifier(node *ast.Identifier, env *object.Environment
 		return builtin
 	}
 
-	return newError("[%d:%d] identifier not found: %s", node.Token.Line, node.Token.Column, node.Value)
+	return newError(node, "identifier not found: %s", node.Value)
 }
 
 func (e *Evaluator) evalExpressions(expressions []ast.Expression, env *object.Environment) []object.Object {
@@ -417,7 +444,7 @@ func (e *Evaluator) unwrapReturnValue(obj object.Object) object.Object {
 	return obj
 }
 
-func (e *Evaluator) applyFunction(function object.Object, args []object.Object) object.Object {
+func (e *Evaluator) applyFunction(node *ast.CallExpression, function object.Object, args []object.Object) object.Object {
 	switch function := function.(type) {
 	case *object.Function:
 		extendedEnv := e.extendFunctionEnv(function, args)
@@ -425,10 +452,10 @@ func (e *Evaluator) applyFunction(function object.Object, args []object.Object) 
 
 		return e.unwrapReturnValue(evaluated)
 	case *object.Builtin:
-		return function.Function(args...)
+		return function.Function(node, args...)
 	}
 
-	return newError("not a function: %s", function.Type())
+	return newError(node, "not a function: %s", function.Type())
 }
 
 func (e *Evaluator) evalArrayIndexExpression(array, index object.Object) object.Object {
@@ -453,7 +480,8 @@ func (e *Evaluator) evalHashIndexExpression(hash, index object.Object) object.Ob
 	key, ok := index.(object.Hashable)
 
 	if !ok {
-		return newError("unusable as hash key: %s", index.Type())
+		fmt.Println(index.Type())
+		return newError(index.Node(), "unusable as hash key: %s", index.Type())
 	}
 
 	pair, ok := hashObject.Pairs[key.HashKey()]
@@ -472,7 +500,7 @@ func (e *Evaluator) evalIndexExpression(left, index object.Object) object.Object
 	case left.Type() == object.HASH_OBJ:
 		return e.evalHashIndexExpression(left, index)
 	default:
-		return newError("index operator not supported: %s", left.Type())
+		return newError(index.Node(), "index operator not supported: %s", left.Type())
 	}
 }
 
@@ -489,7 +517,7 @@ func (e *Evaluator) evalHashLiteral(node *ast.HashLiteral, env *object.Environme
 		hashKey, ok := key.(object.Hashable)
 
 		if !ok {
-			return newError("[%d:%d] unusable as hash key: %s", node.Token.Line, node.Token.Column, key.Type())
+			return newError(node, "unusable as hash key: %s", key.Type())
 		}
 
 		value := e.Eval(valueNode, env)
@@ -530,7 +558,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		_, defined := env.GetFromCurrent(node.Name.Value)
 
 		if defined {
-			return newError("[%d:%d] variable already defined: %s", node.Token.Line, node.Token.Column, node.Name.Value)
+			return newError(node, "variable already defined: %s", node.Name.Value)
 		}
 
 		value := e.Eval(node.Value, env)
@@ -557,19 +585,19 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 	// Expressions
 	case *ast.IntegerLiteral:
-		return &object.Integer{Value: node.Value}
+		return object.NewInteger(node, node.Value)
 
 	case *ast.BooleanLiteral:
 		return e.nativeBoolToBooleanObject(node.Value)
 
 	case *ast.FloatLiteral:
-		return &object.Float{Value: node.Value}
+		return object.NewFloat(node, node.Value)
 
 	case *ast.NullLiteral:
-		return &object.Null{}
+		return object.NewNull(node)
 
 	case *ast.StringLiteral:
-		return &object.String{Value: node.Value}
+		return object.NewString(node, node.Value)
 
 	case *ast.ArrayLiteral:
 		elements := e.evalExpressions(node.Elements, env)
@@ -578,7 +606,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 			return elements[0]
 		}
 
-		return &object.Array{Elements: elements}
+		return object.NewArray(node, elements)
 
 	case *ast.HashLiteral:
 		return e.evalHashLiteral(node, env)
@@ -591,6 +619,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 
 		return e.evalPrefixExpression(node.Operator, right)
+
 	case *ast.InfixExpression:
 		left := e.Eval(node.Left, env)
 
@@ -610,10 +639,10 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		return e.evalIfExpression(node, env)
 
 	case *ast.BreakExpression:
-		return &object.Break{}
+		return object.NewBreak(node)
 
 	case *ast.ContinueExpression:
-		return &object.Continue{}
+		return object.NewContinue(node)
 
 	case *ast.Identifier:
 		return e.evalIdentifier(node, env)
@@ -622,7 +651,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		params := node.Parameters
 		body := node.Body
 
-		return &object.Function{Parameters: params, Env: env, Body: body}
+		return object.NewFunction(node, params, body, env)
 
 	case *ast.CallExpression:
 		function := e.Eval(node.Function, env)
@@ -637,7 +666,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 
-		return e.applyFunction(function, args)
+		return e.applyFunction(node, function, args)
 
 	case *ast.IndexExpression:
 		left := e.Eval(node.Left, env)
@@ -658,7 +687,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		_, environment, defined := env.Get(node.Name.Value)
 
 		if !defined {
-			return newError("[%d:%d] variable %s has not been initialized.", node.Token.Line, node.Token.Column, node.Name.Value)
+			return newError(node, "variable %s has not been initialized.", node.Name.Value)
 		}
 
 		value := e.Eval(node.Value, env)

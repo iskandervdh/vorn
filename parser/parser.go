@@ -116,7 +116,7 @@ func PrintErrors(out io.Writer, errors []string) {
 	io.WriteString(out, "Syntax errors:\n")
 
 	for _, msg := range errors {
-		io.WriteString(out, "    - "+msg+"\n")
+		io.WriteString(out, msg+"\n")
 	}
 }
 
@@ -136,18 +136,22 @@ func (p *Parser) currentPrecedence() int {
 	return LOWEST
 }
 
-func (p *Parser) addError(msg string, peek bool) {
+func (p *Parser) addError(e string, peek bool) {
+	var t token.Token
+
 	if peek {
-		msg = fmt.Sprintf("[%d:%d]: %s", p.peekToken.Line, p.peekToken.Column, msg)
+		t = p.peekToken
 	} else {
-		msg = fmt.Sprintf("[%d:%d]: %s", p.currentToken.Line, p.currentToken.Column, msg)
+		t = p.currentToken
 	}
 
-	p.errors = append(p.errors, msg)
+	e = fmt.Sprintf("[%d:%d]: %s", t.Line, t.Column, e)
+
+	p.errors = append(p.errors, e)
 }
 
 func (p *Parser) peekError(t token.TokenType) {
-	p.addError(fmt.Sprintf("expected '%s', got '%s' instead", t, p.peekToken.Type), true)
+	p.addError(fmt.Sprintf("expected '%s', got %s instead", t, p.peekToken.Type), true)
 }
 
 func (p *Parser) nextToken() {
@@ -433,6 +437,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 	if prefix == nil {
 		p.noPrefixParseFnError(p.currentToken.Type)
+
 		return nil
 	}
 

@@ -15,6 +15,8 @@ type IntegerLiteral struct {
 func (il *IntegerLiteral) expressionNode()      {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
+func (il *IntegerLiteral) Line() int            { return il.Token.Line }
+func (il *IntegerLiteral) Column() int          { return il.Token.Column }
 
 type BooleanLiteral struct {
 	Token token.Token
@@ -24,6 +26,8 @@ type BooleanLiteral struct {
 func (bl *BooleanLiteral) expressionNode()      {}
 func (bl *BooleanLiteral) TokenLiteral() string { return bl.Token.Literal }
 func (bl *BooleanLiteral) String() string       { return bl.Token.Literal }
+func (bl *BooleanLiteral) Line() int            { return bl.Token.Line }
+func (bl *BooleanLiteral) Column() int          { return bl.Token.Column }
 
 type FloatLiteral struct {
 	Token token.Token
@@ -33,6 +37,8 @@ type FloatLiteral struct {
 func (fl *FloatLiteral) expressionNode()      {}
 func (fl *FloatLiteral) TokenLiteral() string { return fl.Token.Literal }
 func (fl *FloatLiteral) String() string       { return fl.Token.Literal }
+func (fl *FloatLiteral) Line() int            { return fl.Token.Line }
+func (fl *FloatLiteral) Column() int          { return fl.Token.Column }
 
 type NullLiteral struct {
 	Token token.Token
@@ -41,6 +47,8 @@ type NullLiteral struct {
 func (nl *NullLiteral) expressionNode()      {}
 func (nl *NullLiteral) TokenLiteral() string { return nl.Token.Literal }
 func (nl *NullLiteral) String() string       { return nl.Token.Literal }
+func (nl *NullLiteral) Line() int            { return nl.Token.Line }
+func (nl *NullLiteral) Column() int          { return nl.Token.Column }
 
 type FunctionLiteral struct {
 	Token      token.Token // The 'func' token
@@ -68,6 +76,8 @@ func (fl *FunctionLiteral) String() string {
 
 	return out.String()
 }
+func (fl *FunctionLiteral) Line() int   { return fl.Token.Line }
+func (fl *FunctionLiteral) Column() int { return fl.Token.Column }
 
 type StringLiteral struct {
 	Token token.Token
@@ -77,6 +87,8 @@ type StringLiteral struct {
 func (sl *StringLiteral) expressionNode()      {}
 func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
 func (sl *StringLiteral) String() string       { return sl.Token.Literal }
+func (sl *StringLiteral) Line() int            { return sl.Token.Line }
+func (sl *StringLiteral) Column() int          { return sl.Token.Column }
 
 type ArrayLiteral struct {
 	Token    token.Token // the '[' token
@@ -99,6 +111,8 @@ func (al *ArrayLiteral) String() string {
 
 	return out.String()
 }
+func (al *ArrayLiteral) Line() int   { return al.Token.Line }
+func (al *ArrayLiteral) Column() int { return al.Token.Column }
 
 type HashLiteral struct {
 	Token token.Token // the '{' token
@@ -122,3 +136,5 @@ func (hl *HashLiteral) String() string {
 
 	return out.String()
 }
+func (hl *HashLiteral) Line() int   { return hl.Token.Line }
+func (hl *HashLiteral) Column() int { return hl.Token.Column }

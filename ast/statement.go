@@ -26,6 +26,8 @@ func (es *ExpressionStatement) String() string {
 
 	return ""
 }
+func (es *ExpressionStatement) Line() int   { return es.Token.Line }
+func (es *ExpressionStatement) Column() int { return es.Token.Column }
 
 type VariableStatement struct {
 	Token token.Token
@@ -52,6 +54,8 @@ func (vs *VariableStatement) String() string {
 
 	return out.String()
 }
+func (vs *VariableStatement) Line() int   { return vs.Token.Line }
+func (vs *VariableStatement) Column() int { return vs.Token.Column }
 
 type ReturnStatement struct {
 	Token       token.Token
@@ -73,6 +77,8 @@ func (rs *ReturnStatement) String() string {
 
 	return out.String()
 }
+func (rs *ReturnStatement) Line() int   { return rs.Token.Line }
+func (rs *ReturnStatement) Column() int { return rs.Token.Column }
 
 type BlockStatement struct {
 	Parent     Scope
@@ -91,6 +97,8 @@ func (bs *BlockStatement) String() string {
 
 	return out.String()
 }
+func (bs *BlockStatement) Line() int   { return bs.Token.Line }
+func (bs *BlockStatement) Column() int { return bs.Token.Column }
 
 func (bs *BlockStatement) GetParentScope() Scope {
 	return bs.Parent
@@ -119,6 +127,8 @@ func (ws *WhileStatement) String() string {
 
 	return out.String()
 }
+func (ws *WhileStatement) Line() int   { return ws.Token.Line }
+func (ws *WhileStatement) Column() int { return ws.Token.Column }
 
 type ForStatement struct {
 	Parent     Scope
@@ -147,6 +157,8 @@ func (fs *ForStatement) String() string {
 
 	return out.String()
 }
+func (fs *ForStatement) Line() int   { return fs.Token.Line }
+func (fs *ForStatement) Column() int { return fs.Token.Column }
 
 func (fs *ForStatement) GetParentScope() Scope {
 	return fs.Parent
@@ -186,3 +198,5 @@ func (fs *FunctionStatement) String() string {
 
 	return out.String()
 }
+func (fs *FunctionStatement) Line() int   { return fs.Token.Line }
+func (fs *FunctionStatement) Column() int { return fs.Token.Column }

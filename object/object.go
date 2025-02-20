@@ -63,17 +63,17 @@ func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Node() ast.Node   { return i.node }
 
 type Boolean struct {
-	AstNode ast.Node
-	Value   bool
+	node  ast.Node
+	Value bool
 }
 
 func NewBoolean(node ast.Node, value bool) *Boolean {
-	return &Boolean{AstNode: node, Value: value}
+	return &Boolean{node: node, Value: value}
 }
 
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
-func (b *Boolean) Node() ast.Node   { return b.AstNode }
+func (b *Boolean) Node() ast.Node   { return b.node }
 
 type Float struct {
 	node  ast.Node
@@ -285,4 +285,51 @@ func (s *String) HashKey() HashKey {
 	h.Write([]byte(s.Value))
 
 	return HashKey{Type: s.Type(), Value: h.Sum64()}
+}
+
+func Clone(node ast.Node, object Object) Object {
+	switch object.Type() {
+	case NULL_OBJ:
+		return NewNull(node)
+	case INTEGER_OBJ:
+		return NewInteger(node, object.(*Integer).Value)
+	case BOOLEAN_OBJ:
+		return NewBoolean(node, object.(*Boolean).Value)
+	case FLOAT_OBJ:
+		return NewFloat(node, object.(*Float).Value)
+	case RETURN_VALUE_OBJ:
+		return NewReturnValue(node, object)
+	case BREAK_OBJ:
+		return NewBreak(node)
+	case CONTINUE_OBJ:
+		return NewContinue(node)
+	case ERROR_OBJ:
+		return NewError(node, object.(*String).Value)
+	case FUNCTION_OBJ:
+		return NewFunction(node, object.(*Function).Parameters, object.(*Function).Body, object.(*Function).Env)
+	case STRING_OBJ:
+		return NewString(node, object.(*String).Value)
+	case BUILTIN_OBJ:
+		return NewBuiltin(node, object.(*Builtin).Function)
+	case ARRAY_OBJ:
+		elements := make([]Object, len(object.(*Array).Elements))
+
+		for i, el := range object.(*Array).Elements {
+			elements[i] = Clone(node, el)
+		}
+
+		return NewArray(node, elements)
+	case HASH_OBJ:
+		pairs := make(map[HashKey]HashPair)
+
+		for key, pair := range object.(*Hash).Pairs {
+			pairCopy := HashPair{Key: Clone(node, pair.Key), Value: Clone(node, pair.Value)}
+
+			pairs[key] = pairCopy
+		}
+
+		return NewHash(node, object.(*Hash).Pairs)
+	default:
+		return NewNull(node)
+	}
 }

@@ -179,9 +179,10 @@ func (e *Evaluator) builtinSplit(node ast.Node, args ...object.Object) object.Ob
 	elements := make([]object.Object, len(parts))
 
 	for i, part := range parts {
-		elements[i] = &object.String{Value: part}
+		elements[i] = object.NewString(node, part)
 	}
-	return &object.Array{Elements: elements}
+
+	return object.NewArray(node, elements)
 }
 
 func (e *Evaluator) builtinUppercase(node ast.Node, args ...object.Object) object.Object {
@@ -195,7 +196,7 @@ func (e *Evaluator) builtinUppercase(node ast.Node, args ...object.Object) objec
 
 	str := args[0].(*object.String).Value
 
-	return &object.String{Value: strings.ToUpper(str)}
+	return object.NewString(node, strings.ToUpper(str))
 }
 
 func (e *Evaluator) builtinLowercase(node ast.Node, args ...object.Object) object.Object {
@@ -209,7 +210,7 @@ func (e *Evaluator) builtinLowercase(node ast.Node, args ...object.Object) objec
 
 	str := args[0].(*object.String).Value
 
-	return &object.String{Value: strings.ToLower(str)}
+	return object.NewString(node, strings.ToLower(str))
 }
 
 // String & Array functions
@@ -237,11 +238,11 @@ func (e *Evaluator) builtinFirst(node ast.Node, args ...object.Object) object.Ob
 	switch arg := args[0].(type) {
 	case *object.Array:
 		if len(arg.Elements) > 0 {
-			return arg.Elements[0]
+			return object.Clone(node, arg.Elements[0])
 		}
 	case *object.String:
 		if len(arg.Value) > 0 {
-			return &object.String{Value: string(arg.Value[0])}
+			return object.NewString(node, string(arg.Value[0]))
 		}
 	default:
 		return newError(node, "argument to `first` must be ARRAY or STRING, got %s", args[0].Type())
@@ -260,13 +261,13 @@ func (e *Evaluator) builtinLast(node ast.Node, args ...object.Object) object.Obj
 		length := len(arg.Elements)
 
 		if length > 0 {
-			return arg.Elements[length-1]
+			return object.Clone(node, arg.Elements[length-1])
 		}
 	case *object.String:
 		length := len(arg.Value)
 
 		if length > 0 {
-			return &object.String{Value: string(arg.Value[length-1])}
+			return object.NewString(node, string(arg.Value[length-1]))
 		}
 	default:
 		return newError(node, "argument to `last` must be ARRAY or STRING, got %s", args[0].Type())
@@ -290,10 +291,13 @@ func (e *Evaluator) builtinRest(node ast.Node, args ...object.Object) object.Obj
 	length := len(arr.Elements)
 
 	if length > 0 {
-		newElements := make([]object.Object, length-1)
-		copy(newElements, arr.Elements[1:length])
+		elements := make([]object.Object, length-1)
 
-		return &object.Array{Elements: newElements}
+		for i := 1; i < length; i++ {
+			elements[i-1] = object.Clone(node, arr.Elements[i])
+		}
+
+		return object.NewArray(node, elements)
 	}
 
 	return NULL
@@ -310,12 +314,15 @@ func (e *Evaluator) builtinPush(node ast.Node, args ...object.Object) object.Obj
 
 	arr := args[0].(*object.Array)
 	length := len(arr.Elements)
-	newElements := make([]object.Object, length+1)
+	elements := make([]object.Object, length+1)
 
-	copy(newElements, arr.Elements)
-	newElements[length] = args[1]
+	for i := 0; i < length; i++ {
+		elements[i] = object.Clone(node, arr.Elements[i])
+	}
 
-	return &object.Array{Elements: newElements}
+	elements[length] = object.Clone(node, args[1])
+
+	return object.NewArray(node, elements)
 }
 
 func (e *Evaluator) builtinPop(node ast.Node, args ...object.Object) object.Object {
@@ -331,10 +338,13 @@ func (e *Evaluator) builtinPop(node ast.Node, args ...object.Object) object.Obje
 	length := len(arr.Elements)
 
 	if length > 0 {
-		newElements := make([]object.Object, length-1)
-		copy(newElements, arr.Elements[:length-1])
+		elements := make([]object.Object, length-1)
 
-		return &object.Array{Elements: newElements}
+		for i := 0; i < length-1; i++ {
+			elements[i] = object.Clone(node, arr.Elements[i])
+		}
+
+		return object.NewArray(node, elements)
 	}
 
 	return NULL

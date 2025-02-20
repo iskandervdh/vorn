@@ -328,11 +328,11 @@ func TestErrorHandling(t *testing.T) {
 	}{
 		{
 			"5 + true;",
-			"[1:1] type mismatch: INTEGER + BOOLEAN",
+			"[1:4] type mismatch: INTEGER + BOOLEAN",
 		},
 		{
 			"5 + true; 5;",
-			"[1:1] type mismatch: INTEGER + BOOLEAN",
+			"[1:4] type mismatch: INTEGER + BOOLEAN",
 		},
 		{
 			"-true",
@@ -340,15 +340,15 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			"true + false;",
-			"[1:1] unknown operator: BOOLEAN + BOOLEAN",
+			"[1:7] unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
 			"5; true + false; 5",
-			"[1:1] unknown operator: BOOLEAN + BOOLEAN",
+			"[1:10] unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
 			"if (10 > 1) { true + false; }",
-			"[1:1] unknown operator: BOOLEAN + BOOLEAN",
+			"[1:21] unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
 			`
@@ -358,7 +358,7 @@ if (10 > 1) {
 	}
 	return 1;
 }`,
-			"[1:1] unknown operator: BOOLEAN + BOOLEAN",
+			"[4:16] unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
 			"foobar",
@@ -366,11 +366,11 @@ if (10 > 1) {
 		},
 		{
 			`"Hello" - "World"`,
-			"[1:12] unknown operator: STRING - STRING",
+			"[1:10] unknown operator: STRING - STRING",
 		},
 		{
-			`{"name": "Monkey"}[func(x) { x }];`,
-			"[1:21] unusable as hash key: FUNCTION",
+			`{"name": "Vorn"}[func(x) { x }];`,
+			"[1:19] unusable as hash key: FUNCTION",
 		},
 	}
 
@@ -581,10 +581,10 @@ false: 6
 	}
 
 	expected := map[object.HashKey]int64{
-		(&object.String{Value: "one"}).HashKey():   1,
-		(&object.String{Value: "two"}).HashKey():   2,
-		(&object.String{Value: "three"}).HashKey(): 3,
-		(&object.Integer{Value: 4}).HashKey():      4,
+		(object.NewString(nil, "one")).HashKey():   1,
+		(object.NewString(nil, "two")).HashKey():   2,
+		(object.NewString(nil, "three")).HashKey(): 3,
+		(object.NewInteger(nil, 4)).HashKey():      4,
 		TRUE.HashKey():                             5,
 		FALSE.HashKey():                            6,
 	}

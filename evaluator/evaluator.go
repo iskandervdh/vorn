@@ -21,24 +21,40 @@ func New() *Evaluator {
 	e := &Evaluator{}
 
 	e.builtins = map[string]*object.Builtin{
-		"type":      {Function: e.builtinType},
-		"int":       {Function: e.builtinInt},
-		"float":     {Function: e.builtinFloat},
-		"string":    {Function: e.builtinString},
+		// Common
+		"type":  {Function: e.builtinType},
+		"range": {Function: e.builtinRange},
+
+		// Conversions
+		"int":    {Function: e.builtinInt},
+		"float":  {Function: e.builtinFloat},
+		"string": {Function: e.builtinString},
+		"bool":   {Function: e.builtinBool},
+
+		// Strings
 		"split":     {Function: e.builtinSplit},
 		"uppercase": {Function: e.builtinUppercase},
 		"lowercase": {Function: e.builtinLowercase},
-		"len":       {Function: e.builtinLen},
-		"first":     {Function: e.builtinFirst},
-		"last":      {Function: e.builtinLast},
-		"rest":      {Function: e.builtinRest},
-		"push":      {Function: e.builtinPush},
-		"pop":       {Function: e.builtinPop},
-		"map":       {Function: e.builtinMap},
-		"reduce":    {Function: e.builtinReduce},
-		"print":     {Function: e.builtinPrint},
-		"pow":       {Function: e.builtinPow},
-		"sqrt":      {Function: e.builtinSqrt},
+
+		// Strings & Arrays
+		"len":   {Function: e.builtinLen},
+		"first": {Function: e.builtinFirst},
+		"last":  {Function: e.builtinLast},
+
+		// Arrays
+		"rest":   {Function: e.builtinRest},
+		"push":   {Function: e.builtinPush},
+		"pop":    {Function: e.builtinPop},
+		"map":    {Function: e.builtinMap},
+		"reduce": {Function: e.builtinReduce},
+
+		// IO
+		"print": {Function: e.builtinPrint},
+
+		// Math
+		"abs":  {Function: e.builtinAbs},
+		"pow":  {Function: e.builtinPow},
+		"sqrt": {Function: e.builtinSqrt},
 	}
 
 	return e

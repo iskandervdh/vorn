@@ -10,7 +10,7 @@ import (
 
 func testEval(input string) object.Object {
 	l := lexer.New(input)
-	p := parser.New(l)
+	p := parser.New(l, false)
 	program := p.ParseProgram()
 	env := object.NewEnvironment()
 

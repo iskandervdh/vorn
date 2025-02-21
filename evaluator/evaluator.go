@@ -222,7 +222,7 @@ func (e *Evaluator) evalMinusPrefixOperatorExpression(right object.Object) objec
 		return object.NewFloat(right.Node(), -value)
 
 	default:
-		return newError(right.Node(), "unknown operator: -%s", right.Type())
+		return object.NewError(right.Node(), "unknown operator: -%s", right.Type())
 	}
 }
 
@@ -233,7 +233,7 @@ func (e *Evaluator) evalPrefixExpression(node *ast.PrefixExpression, right objec
 	case "-":
 		return e.evalMinusPrefixOperatorExpression(right)
 	default:
-		return newError(node, "unknown operator: %s%s", node.Operator, right.Type())
+		return object.NewError(node, "unknown operator: %s%s", node.Operator, right.Type())
 	}
 }
 
@@ -263,7 +263,7 @@ func (e *Evaluator) evalIntegerInfixExpression(node *ast.InfixExpression, left o
 	case "!=":
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
 	}
 }
 
@@ -293,7 +293,7 @@ func (e *Evaluator) evalFloatInfixExpression(node *ast.InfixExpression, left obj
 	case "!=":
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
 	}
 }
 
@@ -316,13 +316,13 @@ func (e *Evaluator) evalNumberInfixExpression(node *ast.InfixExpression, left ob
 		return e.evalFloatInfixExpression(node, left, object.NewFloat(right.Node(), rightValue))
 
 	default:
-		return newError(node, "type mismatch: %s %s %s", left.Type(), node.Operator, right.Type())
+		return object.NewError(node, "type mismatch: %s %s %s", left.Type(), node.Operator, right.Type())
 	}
 }
 
 func (e *Evaluator) evalStringInfixExpression(node *ast.InfixExpression, left, right object.Object) object.Object {
 	if node.Operator != "+" {
-		return newError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
 	}
 
 	leftVal := left.(*object.String).Value
@@ -346,10 +346,10 @@ func (e *Evaluator) evalInfixExpression(node *ast.InfixExpression, left, right o
 		return e.nativeBoolToBooleanObject(left != right)
 
 	case left.Type() != right.Type():
-		return newError(node, "type mismatch: %s %s %s", left.Type(), node.Operator, right.Type())
+		return object.NewError(node, "type mismatch: %s %s %s", left.Type(), node.Operator, right.Type())
 
 	default:
-		return newError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
 	}
 }
 
@@ -383,13 +383,6 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func newError(node ast.Node, format string, a ...interface{}) *object.Error {
-	location := fmt.Sprintf("[%d:%d]", node.Line(), node.Column())
-	message := location + " " + fmt.Sprintf(format, a...)
-
-	return object.NewError(node, message)
-}
-
 func isError(obj object.Object) bool {
 	if obj != nil {
 		return obj.Type() == object.ERROR_OBJ
@@ -407,7 +400,7 @@ func (e *Evaluator) evalIdentifier(node *ast.Identifier, env *object.Environment
 		return builtin
 	}
 
-	return newError(node, "identifier not found: %s", node.Value)
+	return object.NewError(node, "identifier not found: %s", node.Value)
 }
 
 func (e *Evaluator) evalExpressions(expressions []ast.Expression, env *object.Environment) ([]object.Object, *object.Error) {
@@ -455,7 +448,7 @@ func (e *Evaluator) applyFunction(node *ast.CallExpression, function object.Obje
 		return function.Function(node, args...)
 	}
 
-	return newError(node, "not a function: %s", function.Type())
+	return object.NewError(node, "not a function: %s", function.Type())
 }
 
 func (e *Evaluator) evalArrayIndexExpression(array, index object.Object) object.Object {
@@ -481,7 +474,7 @@ func (e *Evaluator) evalHashIndexExpression(hash, index object.Object) object.Ob
 
 	if !ok {
 		fmt.Println(index.Type())
-		return newError(index.Node(), "unusable as hash key: %s", index.Type())
+		return object.NewError(index.Node(), "unusable as hash key: %s", index.Type())
 	}
 
 	pair, ok := hashObject.Pairs[key.HashKey()]
@@ -500,7 +493,7 @@ func (e *Evaluator) evalIndexExpression(left, index object.Object) object.Object
 	case left.Type() == object.HASH_OBJ:
 		return e.evalHashIndexExpression(left, index)
 	default:
-		return newError(index.Node(), "index operator not supported: %s", left.Type())
+		return object.NewError(index.Node(), "index operator not supported: %s", left.Type())
 	}
 }
 
@@ -517,7 +510,7 @@ func (e *Evaluator) evalHashLiteral(node *ast.HashLiteral, env *object.Environme
 		hashKey, ok := key.(object.Hashable)
 
 		if !ok {
-			return newError(node, "unusable as hash key: %s", key.Type())
+			return object.NewError(node, "unusable as hash key: %s", key.Type())
 		}
 
 		value := e.Eval(valueNode, env)
@@ -558,7 +551,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		_, defined := env.GetFromCurrent(node.Name.Value)
 
 		if defined {
-			return newError(node, "variable already defined: %s", node.Name.Value)
+			return object.NewError(node, "variable already defined: %s", node.Name.Value)
 		}
 
 		value := e.Eval(node.Value, env)
@@ -687,7 +680,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		_, environment, defined := env.Get(node.Name.Value)
 
 		if !defined {
-			return newError(node, "variable %s has not been initialized.", node.Name.Value)
+			return object.NewError(node, "variable %s has not been initialized.", node.Name.Value)
 		}
 
 		value := e.Eval(node.Value, env)
@@ -697,6 +690,8 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 
 		environment.Set(node.Name.Value, value)
+	case *ast.ChainingExpression:
+		return e.evalChainingExpression(node.Left, node.Right, env)
 	}
 
 	return nil

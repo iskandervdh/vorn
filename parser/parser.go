@@ -19,6 +19,7 @@ type Parser struct {
 	l      *lexer.Lexer
 	scope  ast.Scope
 	errors []string
+	debug  bool
 
 	currentToken token.Token
 	peekToken    token.Token
@@ -35,6 +36,7 @@ const (
 	SUM          // +
 	PRODUCT      // *
 	PREFIX       // -X or !X
+	CHAIN        // object.property / object.method(args)
 	CALL         // myFunction(X)
 	INDEX        // array[index]
 )
@@ -50,14 +52,16 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.DOT:      CHAIN,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
 }
 
-func New(l *lexer.Lexer) *Parser {
+func New(l *lexer.Lexer, debug bool) *Parser {
 	p := &Parser{
 		l:      l,
 		errors: []string{},
+		debug:  debug,
 	}
 
 	// Read two tokens, so currentToken and peekToken are both set
@@ -65,6 +69,19 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 
 	p.prefixParseFunctions = make(map[token.TokenType]prefixParseFunction)
+	p.registerPrefixFunctions()
+
+	p.infixParseFunctions = make(map[token.TokenType]infixParseFunction)
+	p.registerInfixFunctions()
+
+	return p
+}
+
+func (p *Parser) registerPrefix(tokenType token.TokenType, function prefixParseFunction) {
+	p.prefixParseFunctions[tokenType] = function
+}
+
+func (p *Parser) registerPrefixFunctions() {
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
@@ -82,8 +99,13 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 	p.registerPrefix(token.ASSIGN, p.parseReassignLiteral)
+}
 
-	p.infixParseFunctions = make(map[token.TokenType]infixParseFunction)
+func (p *Parser) registerInfix(tokenType token.TokenType, function infixParseFunction) {
+	p.infixParseFunctions[tokenType] = function
+}
+
+func (p *Parser) registerInfixFunctions() {
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
 	p.registerInfix(token.SLASH, p.parseInfixExpression)
@@ -96,16 +118,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GTE, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
-
-	return p
-}
-
-func (p *Parser) registerPrefix(tokenType token.TokenType, function prefixParseFunction) {
-	p.prefixParseFunctions[tokenType] = function
-}
-
-func (p *Parser) registerInfix(tokenType token.TokenType, function infixParseFunction) {
-	p.infixParseFunctions[tokenType] = function
+	p.registerInfix(token.DOT, p.parseChainingExpression)
 }
 
 func (p *Parser) Errors() []string {
@@ -357,6 +370,10 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 }
 
 func (p *Parser) parseWhileStatement() *ast.WhileStatement {
+	if p.debug {
+		defer untrace(trace("WhileStatement"))
+	}
+
 	whileStatement := &ast.WhileStatement{Token: p.currentToken}
 
 	if !p.expectPeek(token.LPAREN) {
@@ -380,6 +397,10 @@ func (p *Parser) parseWhileStatement() *ast.WhileStatement {
 }
 
 func (p *Parser) parseForStatement() *ast.ForStatement {
+	if p.debug {
+		defer untrace(trace("ForStatement"))
+	}
+
 	// Initialize for loop scope
 	forStatement := &ast.ForStatement{Token: p.currentToken}
 	forStatement.Parent = p.scope
@@ -433,6 +454,10 @@ func (p *Parser) parseForStatement() *ast.ForStatement {
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
+	if p.debug {
+		defer untrace(trace("Expression"))
+	}
+
 	prefix := p.prefixParseFunctions[p.currentToken.Type]
 
 	if prefix == nil {
@@ -458,6 +483,10 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 }
 
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	if p.debug {
+		defer untrace(trace("ExpressionStatement"))
+	}
+
 	statement := &ast.ExpressionStatement{Token: p.currentToken}
 	statement.Expression = p.parseExpression(LOWEST)
 
@@ -469,6 +498,10 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 }
 
 func (p *Parser) parseReassignmentExpression() ast.Expression {
+	if p.debug {
+		defer untrace(trace("ReassignmentExpression"))
+	}
+
 	statement := &ast.ReassignmentExpression{}
 
 	statement.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
@@ -504,6 +537,10 @@ func (p *Parser) parseIdentifier() ast.Expression {
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {
+	if p.debug {
+		defer untrace(trace("IntegerLiteral"))
+	}
+
 	literal := &ast.IntegerLiteral{Token: p.currentToken}
 	value, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
 
@@ -546,6 +583,10 @@ func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
+	if p.debug {
+		defer untrace(trace("PrefixExpression"))
+	}
+
 	expression := &ast.PrefixExpression{
 		Token:    p.currentToken,
 		Operator: p.currentToken.Literal,
@@ -558,6 +599,10 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	if p.debug {
+		defer untrace(trace("InfixExpression"))
+	}
+
 	expression := &ast.InfixExpression{
 		Token:    p.currentToken,
 		Operator: p.currentToken.Literal,
@@ -572,6 +617,10 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	if p.debug {
+		defer untrace(trace("CallExpression"))
+	}
+
 	exp := &ast.CallExpression{Token: p.currentToken, Function: function}
 	exp.Arguments = p.parseExpressionList(token.RPAREN)
 
@@ -591,6 +640,10 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 }
 
 func (p *Parser) parseIfExpression() ast.Expression {
+	if p.debug {
+		defer untrace(trace("IfExpression"))
+	}
+
 	expression := &ast.IfExpression{Token: p.currentToken}
 
 	if !p.expectPeek(token.LPAREN) {
@@ -632,6 +685,10 @@ func (p *Parser) parseContinueExpression() ast.Expression {
 }
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	if p.debug {
+		defer untrace(trace("BlockStatement"))
+	}
+
 	block := &ast.BlockStatement{
 		Token:      p.currentToken,
 		Statements: []ast.Statement{},
@@ -707,6 +764,10 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 }
 
 func (p *Parser) parseStringLiteral() ast.Expression {
+	if p.debug {
+		defer untrace(trace("StringLiteral"))
+	}
+
 	return &ast.StringLiteral{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
@@ -749,6 +810,37 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 
 	if !p.expectPeek(token.RBRACKET) {
 		return nil
+	}
+
+	return expression
+}
+
+func (p *Parser) parseChainingExpression(left ast.Expression) ast.Expression {
+	if p.debug {
+		defer untrace(trace("ChainingExpression"))
+	}
+
+	expression := &ast.ChainingExpression{Token: p.currentToken, Left: left}
+
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+
+	// Parse the right-hand side
+	identifier := &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+
+	// Check if the next token is a left parenthesis indicating a function call
+	if p.peekTokenIs(token.LPAREN) {
+		p.nextToken()
+		expression.Right = p.parseCallExpression(identifier)
+	} else {
+		expression.Right = identifier
+	}
+
+	// Continue parsing chained expressions if there are any
+	for p.peekTokenIs(token.DOT) {
+		p.nextToken()
+		return p.parseChainingExpression(expression)
 	}
 
 	return expression

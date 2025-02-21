@@ -38,6 +38,7 @@ const (
 	NOT_EQ = "!="
 
 	// Delimiters
+	DOT       = "."
 	COMMA     = ","
 	SEMICOLON = ";"
 	COLON     = ":"

@@ -13,7 +13,7 @@ import (
 
 func initializeParserTest(t *testing.T, input string, expectedStatementCount int) *ast.Program {
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, false)
 	program := p.ParseProgram()
 
 	checkParserErrors(t, p)
@@ -1106,7 +1106,7 @@ func TestParsingConstReassignmentError(t *testing.T) {
 NAME = "ME";`
 
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, false)
 	p.ParseProgram()
 
 	errors := p.Errors()
@@ -1126,7 +1126,7 @@ func TestParserPrintErrors(t *testing.T) {
 	input := `let x 5;`
 
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, false)
 	p.ParseProgram()
 
 	r, w := io.Pipe()
@@ -1150,7 +1150,7 @@ func TestParserPrintErrors(t *testing.T) {
 func TestLowestPrecedence(t *testing.T) {
 	program := "// This is a comment"
 	l := lexer.New(program)
-	p := New(l)
+	p := New(l, false)
 
 	precedence := p.currentPrecedence()
 
@@ -1163,7 +1163,7 @@ func TestParseIntegerLiteralError(t *testing.T) {
 	input := "\"Test\";"
 
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, false)
 
 	p.parseIntegerLiteral()
 
@@ -1201,7 +1201,7 @@ func TestParseFloatLiteralError(t *testing.T) {
 	input := "\"Test\";"
 
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, false)
 
 	p.parseFloatLiteral()
 

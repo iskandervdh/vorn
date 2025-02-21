@@ -1,0 +1,3 @@
+print(("hello" + "world").upper().lower().length());
+print([1, 2, 3].length());
+// print([1, 2, 3].upper()); // Error: Array has no method upper

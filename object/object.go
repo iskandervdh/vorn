@@ -130,7 +130,10 @@ type Error struct {
 	Message string
 }
 
-func NewError(node ast.Node, message string) *Error {
+func NewError(node ast.Node, format string, a ...interface{}) *Error {
+	location := fmt.Sprintf("[%d:%d]", node.Line(), node.Column())
+	message := location + " " + fmt.Sprintf(format, a...)
+
 	return &Error{node: node, Message: message}
 }
 
@@ -304,7 +307,7 @@ func Clone(node ast.Node, object Object) Object {
 	case CONTINUE_OBJ:
 		return NewContinue(node)
 	case ERROR_OBJ:
-		return NewError(node, object.(*String).Value)
+		return &Error{node: node, Message: object.(*String).Value}
 	case FUNCTION_OBJ:
 		return NewFunction(node, object.(*Function).Parameters, object.(*Function).Body, object.(*Function).Env)
 	case STRING_OBJ:

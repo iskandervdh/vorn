@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/iskandervdh/vorn/object"
@@ -104,12 +105,28 @@ func TestArrayChainingExpression(t *testing.T) {
 	}
 }
 
+func TestObjectChainingExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`{"a": 1, "b": 2}.keys()`, []string{"a", "b"}},
+		{`{"a": 1, "b": 2}.values()`, []string{"1", "2"}},
+		{`{"a": 1, "b": 2}.items()`, []string{"a:1", "b:2"}},
+		{`{}.upper()`, "[1:5] Object has no method upper"},
+	}
+
+	for _, test := range tests {
+		fmt.Println(test.input)
+		checkChainingExpression(t, test.input, test.expected)
+	}
+}
+
 func TestChainingExpression(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected interface{}
 	}{
-		{`{}.upper()`, "[1:5] chaining operator not supported: HASH.upper"},
 		{`{}.upper("2" - "1")`, "[1:15] unknown operator: STRING - STRING"},
 	}
 

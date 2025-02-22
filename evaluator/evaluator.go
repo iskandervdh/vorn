@@ -10,12 +10,14 @@ import (
 
 type StringChainingFunction func(left *object.String, args ...object.Object) object.Object
 type ArrayChainingFunction func(left *object.Array, args ...object.Object) object.Object
+type ObjectChainingFunction func(left *object.Hash, args ...object.Object) object.Object
 
 type Evaluator struct {
 	builtins map[string]*object.Builtin
 
 	stringChainingFunctions map[string]StringChainingFunction
 	arrayChainingFunctions  map[string]ArrayChainingFunction
+	objectChainingFunctions map[string]ObjectChainingFunction
 }
 
 // Reusable objects for TRUE, FALSE and NULL
@@ -118,6 +120,12 @@ func New() *Evaluator {
 		"sort":     e.arraySort,
 		"any":      e.arrayAny,
 		"every":    e.arrayAll,
+	}
+
+	e.objectChainingFunctions = map[string]ObjectChainingFunction{
+		"keys":   e.objectKeys,
+		"values": e.objectValues,
+		"items":  e.objectItems,
 	}
 
 	return e
@@ -589,6 +597,14 @@ func (e *Evaluator) evalChainingCallExpression(left ast.Node, rightCallExpressio
 
 		if !ok {
 			return object.NewError(rightCallExpression.Function, "Array has no method %s", rightCallExpression.Function.TokenLiteral())
+		}
+
+		return chainingFunction(leftValue, args...)
+	case *object.Hash:
+		chainingFunction, ok := e.objectChainingFunctions[rightCallExpression.Function.TokenLiteral()]
+
+		if !ok {
+			return object.NewError(rightCallExpression.Function, "Object has no method %s", rightCallExpression.Function.TokenLiteral())
 		}
 
 		return chainingFunction(leftValue, args...)

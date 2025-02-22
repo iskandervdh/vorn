@@ -808,3 +808,60 @@ func (e *Evaluator) stringEndsWith(left *object.String, args ...object.Object) o
 
 	return e.nativeBoolToBooleanObject(strings.HasSuffix(left.Value, args[0].(*object.String).Value))
 }
+
+/**
+ * Object chaining functions
+ */
+
+func (e *Evaluator) objectKeys(left *object.Hash, args ...object.Object) object.Object {
+	if len(args) != 0 {
+		return object.NewError(left.Node(), "Object.keys() takes no arguments")
+	}
+
+	keys := make([]object.Object, len(left.Pairs))
+
+	i := 0
+
+	for key := range left.Pairs {
+		keys[i] = object.NewString(left.Node(), left.Pairs[key].Key.Inspect())
+		i++
+	}
+
+	return object.NewArray(left.Node(), keys)
+}
+
+func (e *Evaluator) objectValues(left *object.Hash, args ...object.Object) object.Object {
+	if len(args) != 0 {
+		return object.NewError(left.Node(), "Object.values() takes no arguments")
+	}
+
+	values := make([]object.Object, len(left.Pairs))
+
+	i := 0
+
+	for _, pair := range left.Pairs {
+		values[i] = pair.Value
+
+		i++
+	}
+
+	return object.NewArray(left.Node(), values)
+}
+
+func (e *Evaluator) objectItems(left *object.Hash, args ...object.Object) object.Object {
+	if len(args) != 0 {
+		return object.NewError(left.Node(), "Object.items() takes no arguments")
+	}
+
+	items := make([]object.Object, len(left.Pairs))
+
+	i := 0
+
+	for key, pair := range left.Pairs {
+		items[i] = object.NewArray(left.Node(), []object.Object{object.NewString(left.Node(), left.Pairs[key].Key.Inspect()), pair.Value})
+
+		i++
+	}
+
+	return object.NewArray(left.Node(), items)
+}

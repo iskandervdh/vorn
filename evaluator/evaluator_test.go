@@ -370,7 +370,7 @@ if (10 > 1) {
 		},
 		{
 			`{"name": "Vorn"}[func(x) { x }];`,
-			"[1:19] unusable as hash key: FUNCTION",
+			"[1:19] unusable as object key: FUNCTION",
 		},
 	}
 

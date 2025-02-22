@@ -1,7 +1,6 @@
 package evaluator
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/iskandervdh/vorn/object"
@@ -101,7 +100,6 @@ func TestArrayChainingExpression(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		fmt.Println(test.input)
 		checkChainingExpression(t, test.input, test.expected)
 	}
 }

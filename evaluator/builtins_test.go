@@ -489,3 +489,81 @@ func TestCos(t *testing.T) {
 
 	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
 }
+
+func TestTan(t *testing.T) {
+	input := `tan(0)`
+
+	testFloatObject(t, testEval(input), 0.0)
+
+	input = `tan(1)`
+
+	testFloatObject(t, testEval(input), 1.557407724654902)
+
+	input = `tan(1.0)`
+
+	testFloatObject(t, testEval(input), 1.557407724654902)
+
+	input = `tan("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `tan` must be INTEGER or FLOAT, got STRING")
+
+	input = `tan()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
+}
+
+func TestSum(t *testing.T) {
+	input := `sum([1, 2, 3, 4])`
+
+	testIntegerObject(t, testEval(input), 10)
+
+	input = `sum([])`
+
+	testIntegerObject(t, testEval(input), 0)
+
+	input = `sum([1, 2, 3, 4.5])`
+
+	testFloatObject(t, testEval(input), 10.5)
+
+	input = `sum([1, 2, 3, 4], [5, 6, 7, 8])`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 2, want 1")
+
+	input = `sum(1)`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `sum` must be ARRAY, got INTEGER")
+
+	input = `sum([1, 2, 3, "4"])`
+
+	testErrorObject(t, testEval(input), "[1:5] elements in array must be INTEGER or FLOAT, got STRING")
+}
+
+func TestMean(t *testing.T) {
+	input := `mean([1, 2, 3, 4])`
+
+	testFloatObject(t, testEval(input), 2.5)
+
+	input = `mean([1, 2, 3, 4, 5])`
+
+	testIntegerObject(t, testEval(input), 3)
+
+	input = `mean([])`
+
+	testIntegerObject(t, testEval(input), 0)
+
+	input = `mean([1, 2, 3, 4.5])`
+
+	testFloatObject(t, testEval(input), 2.625)
+
+	input = `mean([1, 2, 3, 4], [5, 6, 7, 8])`
+
+	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
+
+	input = `mean(1)`
+
+	testErrorObject(t, testEval(input), "[1:6] argument to `mean` must be ARRAY, got INTEGER")
+
+	input = `mean([1, 2, 3, "4"])`
+
+	testErrorObject(t, testEval(input), "[1:6] elements in array must be INTEGER or FLOAT, got STRING")
+}

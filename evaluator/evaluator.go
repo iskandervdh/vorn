@@ -77,6 +77,11 @@ func New() *Evaluator {
 		"sqrt": {Function: e.builtinSqrt, ArgumentsCount: []int{1}},
 		"sin":  {Function: e.builtinSin, ArgumentsCount: []int{1}},
 		"cos":  {Function: e.builtinCos, ArgumentsCount: []int{1}},
+		"tan":  {Function: e.builtinTan, ArgumentsCount: []int{1}},
+		"sum":  {Function: e.builtinSum, ArgumentsCount: []int{1}},
+		"mean": {Function: e.builtinMean, ArgumentsCount: []int{1}},
+		// "min":  {Function: e.builtinMin, ArgumentsCount: []int{1}},
+		// "max":  {Function: e.builtinMax, ArgumentsCount: []int{1}},
 	}
 
 	e.stringChainingFunctions = map[string]StringChainingFunction{

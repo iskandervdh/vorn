@@ -1,5 +1,7 @@
-func sum(arr) {
-    return reduce(arr, 0, func(initial, element) { return initial + element; });
+func sumReduce(arr) {
+    return arr.reduce(func(initial, element) { return initial + element; }, 0);
 }
 
-print(sum([1, 2, 3, 4]));
+const arr = [1, 2, 3, 4];
+
+print(sumReduce(arr));

@@ -400,3 +400,99 @@ func (e *Evaluator) builtinCos(node ast.Node, args ...object.Object) object.Obje
 
 	return &object.Float{Value: cos}
 }
+
+func (e *Evaluator) builtinTan(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if !object.IsNumber(args[0]) {
+		return object.NewError(node, "argument to `tan` must be INTEGER or FLOAT, got %s", args[0].Type())
+	}
+
+	var x float64
+
+	if args[0].Type() == object.FLOAT_OBJ {
+		x = args[0].(*object.Float).Value
+	}
+
+	if args[0].Type() == object.INTEGER_OBJ {
+		x = float64(args[0].(*object.Integer).Value)
+	}
+
+	tan := math.Tan(x)
+
+	return &object.Float{Value: tan}
+}
+
+func (e *Evaluator) builtinSum(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if args[0].Type() != object.ARRAY_OBJ {
+		return object.NewError(node, "argument to `sum` must be ARRAY, got %s", args[0].Type())
+	}
+
+	arr := args[0].(*object.Array)
+
+	var sum float64
+
+	for _, element := range arr.Elements {
+		if !object.IsNumber(element) {
+			return object.NewError(node, "elements in array must be INTEGER or FLOAT, got %s", element.Type())
+		}
+
+		if element.Type() == object.FLOAT_OBJ {
+			sum += element.(*object.Float).Value
+		} else if element.Type() == object.INTEGER_OBJ {
+			sum += float64(element.(*object.Integer).Value)
+		}
+	}
+
+	// Check if the sum is an integer
+	if sum == float64(int64(sum)) {
+		return &object.Integer{Value: int64(sum)}
+	}
+
+	return &object.Float{Value: sum}
+}
+
+func (e *Evaluator) builtinMean(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if args[0].Type() != object.ARRAY_OBJ {
+		return object.NewError(node, "argument to `mean` must be ARRAY, got %s", args[0].Type())
+	}
+
+	arr := args[0].(*object.Array)
+
+	if len(arr.Elements) == 0 {
+		return &object.Integer{Value: 0}
+	}
+
+	var sum float64
+
+	for _, element := range arr.Elements {
+		if !object.IsNumber(element) {
+			return object.NewError(node, "elements in array must be INTEGER or FLOAT, got %s", element.Type())
+		}
+
+		if element.Type() == object.FLOAT_OBJ {
+			sum += element.(*object.Float).Value
+		} else if element.Type() == object.INTEGER_OBJ {
+			sum += float64(element.(*object.Integer).Value)
+		}
+	}
+
+	mean := sum / float64(len(arr.Elements))
+
+	// Check if the mean is an integer
+	if mean == float64(int64(mean)) {
+		return &object.Integer{Value: int64(mean)}
+	}
+
+	return &object.Float{Value: mean}
+}

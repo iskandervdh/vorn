@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/iskandervdh/vorn/constants"
 	"github.com/iskandervdh/vorn/evaluator"
 	"github.com/iskandervdh/vorn/lexer"
 	"github.com/iskandervdh/vorn/object"
@@ -16,8 +17,6 @@ import (
 	"github.com/iskandervdh/vorn/version"
 )
 
-var DEBUG = false
-
 func runProgram(in io.Reader, out io.Writer) {
 	env := object.NewEnvironment()
 
@@ -25,7 +24,7 @@ func runProgram(in io.Reader, out io.Writer) {
 	buf.ReadFrom(in)
 
 	l := lexer.New(buf.String())
-	p := parser.New(l, DEBUG)
+	p := parser.New(l, constants.TRACE)
 	program := p.ParseProgram()
 
 	if len(p.Errors()) != 0 {
@@ -77,7 +76,7 @@ func handleTrace(in io.Reader, out io.Writer) {
 	buf.ReadFrom(in)
 
 	l := lexer.New(buf.String())
-	p := parser.New(l, DEBUG)
+	p := parser.New(l, constants.TRACE)
 	program := p.ParseProgram()
 
 	if len(p.Errors()) != 0 {

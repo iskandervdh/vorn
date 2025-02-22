@@ -26,5 +26,11 @@
     ["(", ")"],
     ["\"", "\""]
     // ["'", "'"]
-  ]
+  ],
+  "indentationRules": {
+    // how many spaces a block should be indented
+    "increaseIndentPattern": "^.*\\{[^}\"']*|\\([^)\"']*$",
+    // how many spaces a block should be unindented
+    "decreaseIndentPattern": "^\\s*\\}|^\\s*\\)|^\\s*\\]"
+  }
 }

@@ -26,7 +26,7 @@
       "patterns": [
         {
           "name": "keyword.control.vorn",
-          "match": "\\b(if|while|for|return)\\b"
+          "match": "\\b(if|else|while|for|return|continue|break)\\b"
         },
         {
           "name": "keyword.declaration.variable.vorn",
@@ -43,6 +43,18 @@
         {
           "name": "keyword.declaration.function.vorn",
           "match": "\\b(func)\\b"
+        },
+        {
+          "name": "keyword.constant.null.vorn",
+          "match": "\\b(null)\\b"
+        },
+        {
+          "name": "keyword.constant.boolean.true.vorn",
+          "match": "\\b(true)\\b"
+        },
+        {
+          "name": "keyword.constant.boolean.false.vorn",
+          "match": "\\b(false)\\b"
         }
       ]
     },

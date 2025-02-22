@@ -2,6 +2,13 @@
 
 All notable changes to the "vorn" extension will be documented in this file.
 
+## 0.0.4 - 2025-02-23
+### Added
+- Automatic indention for blocks
+- `null` keyword highlighting
+- `true` and `false` keyword highlighting
+- Highlighting for `else`, `continue` and `break` keywords
+
 ## 0.0.3 - 2025-02-19
 ### Added
 - Comment highlighting

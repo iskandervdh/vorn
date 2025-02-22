@@ -445,3 +445,47 @@ func TestSqrt(t *testing.T) {
 
 	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
 }
+
+func TestSin(t *testing.T) {
+	input := `sin(0)`
+
+	testFloatObject(t, testEval(input), 0.0)
+
+	input = `sin(1)`
+
+	testFloatObject(t, testEval(input), 0.8414709848078965)
+
+	input = `sin(1.0)`
+
+	testFloatObject(t, testEval(input), 0.8414709848078965)
+
+	input = `sin("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `sin` must be INTEGER or FLOAT, got STRING")
+
+	input = `sin()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
+}
+
+func TestCos(t *testing.T) {
+	input := `cos(0)`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `cos(1)`
+
+	testFloatObject(t, testEval(input), 0.5403023058681398)
+
+	input = `cos(1.0)`
+
+	testFloatObject(t, testEval(input), 0.5403023058681398)
+
+	input = `cos("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `cos` must be INTEGER or FLOAT, got STRING")
+
+	input = `cos()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
+}

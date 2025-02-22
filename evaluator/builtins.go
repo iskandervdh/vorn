@@ -356,3 +356,47 @@ func (e *Evaluator) builtinSqrt(node ast.Node, args ...object.Object) object.Obj
 
 	return &object.Float{Value: sqrt}
 }
+
+func (e *Evaluator) builtinSin(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if !object.IsNumber(args[0]) {
+		return object.NewError(node, "argument to `sin` must be INTEGER or FLOAT, got %s", args[0].Type())
+	}
+
+	var x float64
+
+	if args[0].Type() == object.FLOAT_OBJ {
+		x = args[0].(*object.Float).Value
+	} else if args[0].Type() == object.INTEGER_OBJ {
+		x = float64(args[0].(*object.Integer).Value)
+	}
+
+	sin := math.Sin(x)
+
+	return &object.Float{Value: sin}
+}
+
+func (e *Evaluator) builtinCos(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if !object.IsNumber(args[0]) {
+		return object.NewError(node, "argument to `cos` must be INTEGER or FLOAT, got %s", args[0].Type())
+	}
+
+	var x float64
+
+	if args[0].Type() == object.FLOAT_OBJ {
+		x = args[0].(*object.Float).Value
+	} else if args[0].Type() == object.INTEGER_OBJ {
+		x = float64(args[0].(*object.Integer).Value)
+	}
+
+	cos := math.Cos(x)
+
+	return &object.Float{Value: cos}
+}

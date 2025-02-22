@@ -83,19 +83,41 @@ func New() *Evaluator {
 	}
 
 	e.stringChainingFunctions = map[string]StringChainingFunction{
-		"length": e.stringLength,
-		"upper":  e.stringUpper,
-		"lower":  e.stringLower,
-		"split":  e.stringSplit,
+		"length":     e.stringLength,
+		"upper":      e.stringUpper,
+		"lower":      e.stringLower,
+		"split":      e.stringSplit,
+		"contains":   e.stringContains,
+		"replace":    e.stringReplace,
+		"trim":       e.stringTrim,
+		"trimStart":  e.stringTrimStart,
+		"trimEnd":    e.stringTrimEnd,
+		"repeat":     e.stringRepeat,
+		"reverse":    e.stringReverse,
+		"slice":      e.stringSlice,
+		"startsWith": e.stringStartsWith,
+		"endsWith":   e.stringEndsWith,
 	}
 
 	e.arrayChainingFunctions = map[string]ArrayChainingFunction{
-		"length": e.arrayLength,
-		"push":   e.arrayPush,
-		"pop":    e.arrayPop,
-		"map":    e.arrayMap,
-		"filter": e.arrayFilter,
-		"reduce": e.arrayReduce,
+		"length":   e.arrayLength,
+		"prepend":  e.arrayPrepend,
+		"append":   e.arrayAppend,
+		"shift":    e.arrayShift,
+		"pop":      e.arrayPop,
+		"concat":   e.arrayConcat,
+		"map":      e.arrayMap,
+		"filter":   e.arrayFilter,
+		"reduce":   e.arrayReduce,
+		"contains": e.arrayContains,
+		"indexOf":  e.arrayIndexOf,
+		"find":     e.arrayFind,
+		"join":     e.arrayJoin,
+		"reverse":  e.arrayReverse,
+		"slice":    e.arraySlice,
+		"sort":     e.arraySort,
+		"any":      e.arrayAny,
+		"every":    e.arrayAll,
 	}
 
 	return e

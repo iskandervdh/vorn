@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/iskandervdh/vorn/object"
@@ -47,7 +48,7 @@ func TestStringChainingExpression(t *testing.T) {
 		{`"hello".length(1)`, "[1:2] String.length() takes no arguments"},
 		{`"hello".upper(1)`, "[1:2] String.upper() takes no arguments"},
 		{`"hello".lower(1)`, "[1:2] String.lower() takes no arguments"},
-		{`"hello".push(1)`, "[1:10] String has no method push"},
+		{`"hello".append(1)`, "[1:10] String has no method append"},
 		{`"hello".split(1)`, "[1:2] argument to `split` must be STRING, got INTEGER"},
 		{`"hello".split("e", "l")`, "[1:2] String.split() takes at most 1 argument, got 2"},
 	}
@@ -63,8 +64,8 @@ func TestArrayChainingExpression(t *testing.T) {
 		expected interface{}
 	}{
 		{`[1,2,3].length()`, 3},
-		{`[1,2,3].push(4).length()`, 4},
-		{`let a = [1,2,3]; a.push(4); a.length()`, 4},
+		{`[1,2,3].append(4).length()`, 4},
+		{`let a = [1,2,3]; a.append(4); a.length()`, 4},
 		{`[1,2,3].pop()`, 3},
 		{`let a = [1,2,3]; a.pop(); a.pop(); a`, []string{"1"}},
 		{`let a = [1,2,3]; a.pop(1)`, 2},
@@ -78,7 +79,7 @@ func TestArrayChainingExpression(t *testing.T) {
 
 		// Errors
 		{`[1,2,3].length(1)`, "[1:2] Array.length() takes no arguments"},
-		{`[1,2,3].push()`, "[1:2] Array.push() takes exactly 1 argument"},
+		{`[1,2,3].append()`, "[1:2] Array.append() takes exactly 1 argument"},
 		{`[1,2,3].upper()`, "[1:10] Array has no method upper"},
 		{`[].pop()`, "[1:2] Array.pop() called on empty array"},
 		{`[1,2,3].pop(1,2)`, "[1:2] Array.pop() 0 or 1 argument"},
@@ -100,6 +101,7 @@ func TestArrayChainingExpression(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		fmt.Println(test.input)
 		checkChainingExpression(t, test.input, test.expected)
 	}
 }

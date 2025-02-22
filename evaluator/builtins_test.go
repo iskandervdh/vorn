@@ -369,7 +369,7 @@ map([1, 2, 3, 4], timesTwo);`
 	// TestIterMap
 	e := New()
 
-	testErrorObject(t, e.builtinIterMap(&ast.CallExpression{}), "[0:0] wrong number of arguments. got 0, want 2")
+	testErrorObject(t, e.builtinIterMap(&ast.CallExpression{}, 0), "[0:0] wrong number of arguments. got 0, want 2")
 }
 
 func TestReduce(t *testing.T) {
@@ -404,7 +404,7 @@ reduce([1, 2, 3, 4], 0, add);`
 	// TestIterReduce
 	e := New()
 
-	testErrorObject(t, e.builtinIterReduce(&ast.CallExpression{}), "[0:0] wrong number of arguments. got 0, want 3")
+	testErrorObject(t, e.builtinIterReduce(&ast.CallExpression{}, 0), "[0:0] wrong number of arguments. got 0, want 3")
 }
 
 func TestPrint(t *testing.T) {

@@ -241,70 +241,29 @@ func (e *Evaluator) builtinRest(node ast.Node, args ...object.Object) object.Obj
 	return NULL
 }
 
-func (e *Evaluator) builtinPush(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 2 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 2", len(args))
-	}
-
-	if args[0].Type() != object.ARRAY_OBJ {
-		return object.NewError(node, "first argument to `push` must be ARRAY, got %s", args[0].Type())
-	}
-
-	arr := args[0].(*object.Array)
-	length := len(arr.Elements)
-	elements := make([]object.Object, length+1)
-
-	for i := 0; i < length; i++ {
-		elements[i] = object.Clone(node, arr.Elements[i])
-	}
-
-	elements[length] = object.Clone(node, args[1])
-
-	return object.NewArray(node, elements)
-}
-
-func (e *Evaluator) builtinPop(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 1 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
-	}
-
-	if args[0].Type() != object.ARRAY_OBJ {
-		return object.NewError(node, "first argument to `pop` must be ARRAY, got %s", args[0].Type())
-	}
-
-	arr := args[0].(*object.Array)
-	length := len(arr.Elements)
-
-	if length > 0 {
-		elements := make([]object.Object, length-1)
-
-		for i := 0; i < length-1; i++ {
-			elements[i] = object.Clone(node, arr.Elements[i])
-		}
-
-		return object.NewArray(node, elements)
-	}
-
-	return NULL
-}
-
-func (e *Evaluator) builtinIterMap(node ast.Node, args ...object.Object) object.Object {
+func (e *Evaluator) builtinIterMap(node ast.Node, amountLeft int, args ...object.Object) object.Object {
 	if len(args) != 3 {
 		return object.NewError(node, "wrong number of arguments. got %d, want 2", len(args))
 	}
 
 	arr := args[0].(*object.Array)
-	accumulated := args[1]
+	accumulated := args[1].(*object.Array)
 	f := args[2]
 
-	if e.builtinLen(node, arr).Inspect() == "0" {
+	if amountLeft == 0 {
 		return accumulated
 	}
 
+	index := len(accumulated.Elements) - amountLeft
+
+	newValue := e.applyFunction(nil, f, []object.Object{arr.Elements[index]})
+	accumulated.Elements[index] = newValue
+
 	return e.builtinIterMap(
 		node,
-		e.builtinRest(node, arr),
-		e.builtinPush(node, accumulated, e.applyFunction(nil, f, []object.Object{e.builtinFirst(node, arr)})),
+		amountLeft-1,
+		arr,
+		accumulated,
 		f,
 	)
 }
@@ -325,10 +284,13 @@ func (e *Evaluator) builtinMap(node ast.Node, args ...object.Object) object.Obje
 	arr := args[0].(*object.Array)
 	f := args[1]
 
-	return e.builtinIterMap(node, arr, &object.Array{Elements: []object.Object{}}, f)
+	length := len(arr.Elements)
+	newElements := make([]object.Object, length)
+
+	return e.builtinIterMap(node, length, arr, &object.Array{Elements: newElements}, f)
 }
 
-func (e *Evaluator) builtinIterReduce(node ast.Node, args ...object.Object) object.Object {
+func (e *Evaluator) builtinIterReduce(node ast.Node, amountLeft int, args ...object.Object) object.Object {
 	if len(args) != 3 {
 		return object.NewError(node, "wrong number of arguments. got %d, want 3", len(args))
 	}
@@ -337,14 +299,18 @@ func (e *Evaluator) builtinIterReduce(node ast.Node, args ...object.Object) obje
 	result := args[1]
 	f := args[2]
 
-	if e.builtinLen(node, arr).Inspect() == "0" {
+	if amountLeft == 0 {
 		return result
 	}
 
+	index := len(arr.Elements) - amountLeft
+	newResult := e.applyFunction(nil, f, []object.Object{result, arr.Elements[index]})
+
 	return e.builtinIterReduce(
 		node,
-		e.builtinRest(node, arr),
-		e.applyFunction(nil, f, []object.Object{result, e.builtinFirst(node, arr)}),
+		amountLeft-1,
+		arr,
+		newResult,
 		f,
 	)
 }
@@ -366,7 +332,7 @@ func (e *Evaluator) builtinReduce(node ast.Node, args ...object.Object) object.O
 	initial := args[1]
 	f := args[2]
 
-	return e.builtinIterReduce(node, arr, initial, f)
+	return e.builtinIterReduce(node, len(arr.Elements), arr, initial, f)
 }
 
 // IO functions

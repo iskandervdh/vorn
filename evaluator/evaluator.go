@@ -51,37 +51,35 @@ func New() *Evaluator {
 
 	e.builtins = map[string]*object.Builtin{
 		// Common
-		"type":  {Function: e.builtinType, ArgumentsCount: []int{1}},
-		"range": {Function: e.builtinRange, ArgumentsCount: []int{1, 2}},
+		"type":  {Function: e.builtinType, ArgumentsCount: 1},
+		"range": {Function: e.builtinRange, ArgumentsCount: -1}, // Variable amount of arguments
 
 		// Conversions
-		"int":    {Function: e.builtinInt, ArgumentsCount: []int{1}},
-		"float":  {Function: e.builtinFloat, ArgumentsCount: []int{1}},
-		"string": {Function: e.builtinString, ArgumentsCount: []int{1}},
-		"bool":   {Function: e.builtinBool, ArgumentsCount: []int{1}},
+		"int":    {Function: e.builtinInt, ArgumentsCount: 1},
+		"float":  {Function: e.builtinFloat, ArgumentsCount: 1},
+		"string": {Function: e.builtinString, ArgumentsCount: 1},
+		"bool":   {Function: e.builtinBool, ArgumentsCount: 1},
 
 		// Strings & Arrays
-		"len":   {Function: e.builtinLen, ArgumentsCount: []int{1}},
-		"first": {Function: e.builtinFirst, ArgumentsCount: []int{1}},
-		"last":  {Function: e.builtinLast, ArgumentsCount: []int{1}},
+		"len":   {Function: e.builtinLen, ArgumentsCount: 1},
+		"first": {Function: e.builtinFirst, ArgumentsCount: 1},
+		"last":  {Function: e.builtinLast, ArgumentsCount: 1},
 
 		// Arrays
-		"rest": {Function: e.builtinRest, ArgumentsCount: []int{1}},
+		"rest": {Function: e.builtinRest, ArgumentsCount: 1},
 
 		// IO
-		"print": {Function: e.builtinPrint, ArgumentsCount: []int{-1}}, // Variable arguments
+		"print": {Function: e.builtinPrint, ArgumentsCount: -1}, // Variable amount of arguments
 
 		// Math
-		"abs":  {Function: e.builtinAbs, ArgumentsCount: []int{1}},
-		"pow":  {Function: e.builtinPow, ArgumentsCount: []int{2}},
-		"sqrt": {Function: e.builtinSqrt, ArgumentsCount: []int{1}},
-		"sin":  {Function: e.builtinSin, ArgumentsCount: []int{1}},
-		"cos":  {Function: e.builtinCos, ArgumentsCount: []int{1}},
-		"tan":  {Function: e.builtinTan, ArgumentsCount: []int{1}},
-		"sum":  {Function: e.builtinSum, ArgumentsCount: []int{1}},
-		"mean": {Function: e.builtinMean, ArgumentsCount: []int{1}},
-		// "min":  {Function: e.builtinMin, ArgumentsCount: []int{1}},
-		// "max":  {Function: e.builtinMax, ArgumentsCount: []int{1}},
+		"abs":  {Function: e.builtinAbs, ArgumentsCount: 1},
+		"pow":  {Function: e.builtinPow, ArgumentsCount: 2},
+		"sqrt": {Function: e.builtinSqrt, ArgumentsCount: 1},
+		"sin":  {Function: e.builtinSin, ArgumentsCount: 1},
+		"cos":  {Function: e.builtinCos, ArgumentsCount: 1},
+		"tan":  {Function: e.builtinTan, ArgumentsCount: 1},
+		"sum":  {Function: e.builtinSum, ArgumentsCount: 1},
+		"mean": {Function: e.builtinMean, ArgumentsCount: 1},
 	}
 
 	e.stringChainingFunctions = map[string]StringChainingFunction{

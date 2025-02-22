@@ -14,7 +14,7 @@ import (
 
 func getCallbackArgumentsCount(f object.Object, chainingExpression string) (int, *object.Error) {
 	if f.Type() == object.BUILTIN_OBJ {
-		return f.(*object.Builtin).ArgumentsCount[0], nil
+		return f.(*object.Builtin).ArgumentsCount, nil
 	} else if f.Type() == object.FUNCTION_OBJ {
 		return len(f.(*object.Function).Arguments), nil
 	} else {

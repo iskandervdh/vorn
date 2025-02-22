@@ -191,7 +191,7 @@ type BuiltinFunction func(node ast.Node, args ...Object) Object
 type Builtin struct {
 	node           ast.Node
 	Function       BuiltinFunction
-	ArgumentsCount []int
+	ArgumentsCount int
 }
 
 func NewBuiltin(node ast.Node, fn BuiltinFunction) *Builtin {

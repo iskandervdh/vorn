@@ -37,6 +37,11 @@ func runProgram(in io.Reader, out io.Writer) {
 	e := evaluator.New()
 	evaluated := e.Eval(program, env)
 
+	if evaluated == nil {
+		io.WriteString(out, "Something went wrong while evaluating the program, got nil.\n")
+		os.Exit(2)
+	}
+
 	if evaluated.Type() == object.ERROR_OBJ {
 		io.WriteString(out, evaluated.Inspect())
 		io.WriteString(out, "\n")

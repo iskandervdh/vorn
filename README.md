@@ -4,7 +4,7 @@
 
 vorn is a simple interpreted C-like scripting language that I'm making to learn more about language design and implementation.
 
-## Current features
+## Features
 
 * Integers, Floats, Booleans and Strings
 * Arithmetic operations
@@ -15,12 +15,12 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 * If statements
 * For and While loops
 * Functions
+* Function chaining
 * Built-in functions (See [evaluator.go](evaluator/evaluator.go#L23) for a complete list)
 * A REPL
 
 ## Planned features
 
-* Function chaining
 * Error handling
 * Ternaries
 * Modules/Namespaces/Importing

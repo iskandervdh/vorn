@@ -4,15 +4,21 @@ import (
 	"fmt"
 
 	"github.com/iskandervdh/vorn/ast"
-	"github.com/iskandervdh/vorn/evaluator/chaining"
 	"github.com/iskandervdh/vorn/object"
 	"github.com/iskandervdh/vorn/token"
 )
 
+type StringChainingFunction func(left *object.String, args ...object.Object) object.Object
+type ArrayChainingFunction func(left *object.Array, args ...object.Object) object.Object
+
 type Evaluator struct {
 	builtins map[string]*object.Builtin
+
+	stringChainingFunctions map[string]StringChainingFunction
+	arrayChainingFunctions  map[string]ArrayChainingFunction
 }
 
+// Reusable objects for TRUE, FALSE and NULL
 var (
 	NULL = object.NewNull(&ast.NullLiteral{
 		Token: token.Token{
@@ -45,32 +51,48 @@ func New() *Evaluator {
 
 	e.builtins = map[string]*object.Builtin{
 		// Common
-		"type":  {Function: e.builtinType},
-		"range": {Function: e.builtinRange},
+		"type":  {Function: e.builtinType, ArgumentsCount: []int{1}},
+		"range": {Function: e.builtinRange, ArgumentsCount: []int{1, 2}},
 
 		// Conversions
-		"int":    {Function: e.builtinInt},
-		"float":  {Function: e.builtinFloat},
-		"string": {Function: e.builtinString},
-		"bool":   {Function: e.builtinBool},
+		"int":    {Function: e.builtinInt, ArgumentsCount: []int{1}},
+		"float":  {Function: e.builtinFloat, ArgumentsCount: []int{1}},
+		"string": {Function: e.builtinString, ArgumentsCount: []int{1}},
+		"bool":   {Function: e.builtinBool, ArgumentsCount: []int{1}},
 
 		// Strings & Arrays
-		"len":   {Function: e.builtinLen},
-		"first": {Function: e.builtinFirst},
-		"last":  {Function: e.builtinLast},
+		"len":   {Function: e.builtinLen, ArgumentsCount: []int{1}},
+		"first": {Function: e.builtinFirst, ArgumentsCount: []int{1}},
+		"last":  {Function: e.builtinLast, ArgumentsCount: []int{1}},
 
 		// Arrays
-		"rest":   {Function: e.builtinRest},
-		"map":    {Function: e.builtinMap},
-		"reduce": {Function: e.builtinReduce},
+		"rest": {Function: e.builtinRest, ArgumentsCount: []int{1}},
 
 		// IO
-		"print": {Function: e.builtinPrint},
+		"print": {Function: e.builtinPrint, ArgumentsCount: []int{-1}}, // Variable arguments
 
 		// Math
-		"abs":  {Function: e.builtinAbs},
-		"pow":  {Function: e.builtinPow},
-		"sqrt": {Function: e.builtinSqrt},
+		"abs":  {Function: e.builtinAbs, ArgumentsCount: []int{1}},
+		"pow":  {Function: e.builtinPow, ArgumentsCount: []int{2}},
+		"sqrt": {Function: e.builtinSqrt, ArgumentsCount: []int{1}},
+		// "sin":  {Function: e.builtinSin, Arguments: []int{1}},
+		// "cos":  {Function: e.builtinCos, Arguments: []int{1}},
+	}
+
+	e.stringChainingFunctions = map[string]StringChainingFunction{
+		"length": e.stringLength,
+		"upper":  e.stringUpper,
+		"lower":  e.stringLower,
+		"split":  e.stringSplit,
+	}
+
+	e.arrayChainingFunctions = map[string]ArrayChainingFunction{
+		"length": e.arrayLength,
+		"push":   e.arrayPush,
+		"pop":    e.arrayPop,
+		"map":    e.arrayMap,
+		"filter": e.arrayFilter,
+		"reduce": e.arrayReduce,
 	}
 
 	return e
@@ -416,7 +438,7 @@ func (e *Evaluator) evalExpressions(expressions []ast.Expression, env *object.En
 func (e *Evaluator) extendFunctionEnv(function *object.Function, args []object.Object) *object.Environment {
 	env := object.NewEnclosedEnvironment(function.Env)
 
-	for paramIdx, param := range function.Parameters {
+	for paramIdx, param := range function.Arguments {
 		env.Set(param.Value, args[paramIdx])
 	}
 
@@ -530,7 +552,7 @@ func (e *Evaluator) evalChainingCallExpression(left ast.Node, rightCallExpressio
 
 	switch leftValue := leftValue.(type) {
 	case *object.String:
-		chainingFunction, ok := chaining.StringChainingFunctions[rightCallExpression.Function.TokenLiteral()]
+		chainingFunction, ok := e.stringChainingFunctions[rightCallExpression.Function.TokenLiteral()]
 
 		if !ok {
 			return object.NewError(rightCallExpression.Function, "String has no method %s", rightCallExpression.Function.TokenLiteral())
@@ -538,7 +560,7 @@ func (e *Evaluator) evalChainingCallExpression(left ast.Node, rightCallExpressio
 
 		return chainingFunction(leftValue, args...)
 	case *object.Array:
-		chainingFunction, ok := chaining.ArrayChainingFunctions[rightCallExpression.Function.TokenLiteral()]
+		chainingFunction, ok := e.arrayChainingFunctions[rightCallExpression.Function.TokenLiteral()]
 
 		if !ok {
 			return object.NewError(rightCallExpression.Function, "Array has no method %s", rightCallExpression.Function.TokenLiteral())

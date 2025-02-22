@@ -2,8 +2,6 @@ package evaluator
 
 import (
 	"testing"
-
-	"github.com/iskandervdh/vorn/ast"
 )
 
 func TestType(t *testing.T) {
@@ -334,77 +332,6 @@ func TestRest(t *testing.T) {
 	input = `rest([1, 2, 3], [4, 5, 6])`
 
 	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
-}
-
-func TestMap(t *testing.T) {
-	input := `func timesTwo(x) {
-	return x * 2;
-}
-
-map([1, 2, 3, 4], timesTwo);`
-
-	testArrayObject(t, testEval(input), []string{"2", "4", "6", "8"})
-
-	// Test with builtin function
-	input = `map([1, 2, 3, 4], sqrt)`
-
-	testArrayObject(t, testEval(input), []string{"1", "1.4142135623730951", "1.7320508075688772", "2"})
-
-	input = `map([1, 2, 3, 4], 2)`
-
-	testErrorObject(t, testEval(input), "[1:5] second argument to `map` must be FUNCTION or BUILTIN, got INTEGER")
-
-	input = `map([1, 2, 3, 4], sqrt, sqrt)`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 3, want 2")
-
-	input = `map([1, 2, 3, 4])`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 1, want 2")
-
-	input = `map(1, 2)`
-
-	testErrorObject(t, testEval(input), "[1:5] first argument to `map` must be ARRAY, got INTEGER")
-
-	// TestIterMap
-	e := New()
-
-	testErrorObject(t, e.builtinIterMap(&ast.CallExpression{}, 0), "[0:0] wrong number of arguments. got 0, want 2")
-}
-
-func TestReduce(t *testing.T) {
-	input := `func add(x, y) {
-	return x + y;
-}
-
-reduce([1, 2, 3, 4], 0, add);`
-
-	testIntegerObject(t, testEval(input), 10)
-
-	input = `reduce([1, 2, 3], 2, pow)`
-
-	testIntegerObject(t, testEval(input), 64)
-
-	input = `reduce([1, 2, 3, 4], 0, 2)`
-
-	testErrorObject(t, testEval(input), "[1:8] third argument to `reduce` must be FUNCTION or BUILTIN, got INTEGER")
-
-	input = `reduce([1, 2, 3, 4], 0, sqrt, sqrt)`
-
-	testErrorObject(t, testEval(input), "[1:8] wrong number of arguments. got 4, want 3")
-
-	input = `reduce([1, 2, 3, 4], 0)`
-
-	testErrorObject(t, testEval(input), "[1:8] wrong number of arguments. got 2, want 3")
-
-	input = `reduce(1, 2, 3)`
-
-	testErrorObject(t, testEval(input), "[1:8] first argument to `reduce` must be ARRAY, got INTEGER")
-
-	// TestIterReduce
-	e := New()
-
-	testErrorObject(t, e.builtinIterReduce(&ast.CallExpression{}, 0), "[0:0] wrong number of arguments. got 0, want 3")
 }
 
 func TestPrint(t *testing.T) {

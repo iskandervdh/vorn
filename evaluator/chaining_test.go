@@ -68,6 +68,13 @@ func TestArrayChainingExpression(t *testing.T) {
 		{`[1,2,3].pop()`, 3},
 		{`let a = [1,2,3]; a.pop(); a.pop(); a`, []string{"1"}},
 		{`let a = [1,2,3]; a.pop(1)`, 2},
+		{`func timesTwo(x) { x * 2 }; [1, 2, 3, 4].map(timesTwo)`, []string{"2", "4", "6", "8"}},
+		{`[1, 2, 3, 4].map(sqrt)`, []string{"1", "1.4142135623730951", "1.7320508075688772", "2"}},
+		{`[1, 2, 3, 4].map(func(x, i) { return x + i; })`, []string{"1", "3", "5", "7"}},
+		{`[1, 2, 3, 4].filter(func(x) { return x > 2; })`, []string{"3", "4"}},
+		{`[1, 2, 3, 4].filter(func(x) { return 10; })`, []string{"1", "2", "3", "4"}},
+		{`[1, 2, 3, 4].reduce(func(x, y) { return x + y; }, 0)`, 10},
+		{`[1, 2, 3, 4].reduce(func(x, y, i) { return x + y + i; }, 0)`, 16},
 
 		// Errors
 		{`[1,2,3].length(1)`, "[1:2] Array.length() takes no arguments"},
@@ -78,6 +85,18 @@ func TestArrayChainingExpression(t *testing.T) {
 		{`[1,2,3].pop("1")`, "[1:2] Array.pop() argument must be an integer"},
 		{`[1,2,3].pop(3)`, "[1:2] Array.pop() index out of range"},
 		{`[1,2,3].vorn`, "[1:10] chaining operator not supported: ARRAY.vorn"},
+		{`[1,2,3].map()`, "[1:2] Array.map() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].map(2)`, "[1:19] Array.map() callback must be a function, got INTEGER"},
+		{`[1, 2, 3, 4].map(sqrt, sqrt)`, "[1:2] Array.map() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].map()`, "[1:2] Array.map() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].map(func() { return true; })`, "[1:19] Array.map() callback must take at least 1 argument"},
+		{`[1, 2, 3, 4].filter(2)`, "[1:22] Array.filter() callback must be a function, got INTEGER"},
+		{`[1, 2, 3, 4].filter(func() { return true; })`, "[1:22] Array.filter() callback must take at least 1 argument"},
+		{`[1, 2, 3, 4].filter(func(x) { return x > 2; }, func(x) { return x < 2; })`, "[1:2] Array.filter() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].filter()`, "[1:2] Array.filter() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].reduce(2, 0)`, "[1:22] Array.reduce() callback must be a function, got INTEGER"},
+		{`[1, 2, 3, 4].reduce(func(x, y) { return x + y; }, 0, 0)`, "[1:2] Array.reduce() takes exactly 2 arguments, got 3"},
+		{`[1, 2, 3, 4].reduce(func (x) { return x; }, 0)`, "[1:22] Array.reduce() callback must take at least 2 arguments"},
 	}
 
 	for _, test := range tests {

@@ -515,7 +515,7 @@ func (e *Evaluator) evalHashIndexExpression(hash, index object.Object) object.Ob
 
 	if !ok {
 		fmt.Println(index.Type())
-		return object.NewError(index.Node(), "unusable as hash key: %s", index.Type())
+		return object.NewError(index.Node(), "unusable as object key: %s", index.Type())
 	}
 
 	pair, ok := hashObject.Pairs[key.HashKey()]
@@ -551,7 +551,7 @@ func (e *Evaluator) evalHashLiteral(node *ast.HashLiteral, env *object.Environme
 		hashKey, ok := key.(object.Hashable)
 
 		if !ok {
-			return object.NewError(node, "unusable as hash key: %s", key.Type())
+			return object.NewError(node, "unusable as object key: %s", key.Type())
 		}
 
 		value := e.Eval(valueNode, env)

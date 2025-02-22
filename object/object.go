@@ -130,7 +130,10 @@ type Error struct {
 	Message string
 }
 
-func NewError(node ast.Node, message string) *Error {
+func NewError(node ast.Node, format string, a ...interface{}) *Error {
+	location := fmt.Sprintf("[%d:%d]", node.Line(), node.Column())
+	message := location + " " + fmt.Sprintf(format, a...)
+
 	return &Error{node: node, Message: message}
 }
 
@@ -139,14 +142,14 @@ func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 func (e *Error) Node() ast.Node   { return e.node }
 
 type Function struct {
-	node       ast.Node
-	Parameters []*ast.Identifier
-	Body       *ast.BlockStatement
-	Env        *Environment
+	node      ast.Node
+	Arguments []*ast.Identifier
+	Body      *ast.BlockStatement
+	Env       *Environment
 }
 
 func NewFunction(node ast.Node, parameters []*ast.Identifier, body *ast.BlockStatement, env *Environment) *Function {
-	return &Function{node: node, Parameters: parameters, Body: body, Env: env}
+	return &Function{node: node, Arguments: parameters, Body: body, Env: env}
 }
 
 func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
@@ -155,7 +158,7 @@ func (f *Function) Inspect() string {
 
 	params := []string{}
 
-	for _, p := range f.Parameters {
+	for _, p := range f.Arguments {
 		params = append(params, p.String())
 	}
 
@@ -186,8 +189,9 @@ func (s *String) Node() ast.Node   { return s.node }
 type BuiltinFunction func(node ast.Node, args ...Object) Object
 
 type Builtin struct {
-	node     ast.Node
-	Function BuiltinFunction
+	node           ast.Node
+	Function       BuiltinFunction
+	ArgumentsCount []int
 }
 
 func NewBuiltin(node ast.Node, fn BuiltinFunction) *Builtin {
@@ -304,9 +308,9 @@ func Clone(node ast.Node, object Object) Object {
 	case CONTINUE_OBJ:
 		return NewContinue(node)
 	case ERROR_OBJ:
-		return NewError(node, object.(*String).Value)
+		return &Error{node: node, Message: object.(*String).Value}
 	case FUNCTION_OBJ:
-		return NewFunction(node, object.(*Function).Parameters, object.(*Function).Body, object.(*Function).Env)
+		return NewFunction(node, object.(*Function).Arguments, object.(*Function).Body, object.(*Function).Env)
 	case STRING_OBJ:
 		return NewString(node, object.(*String).Value)
 	case BUILTIN_OBJ:

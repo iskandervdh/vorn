@@ -170,6 +170,28 @@ type ReassignmentExpression struct {
 	Value Expression
 }
 
+type ChainingExpression struct {
+	Token token.Token // The '.' token
+	Left  Expression
+	Right Expression
+}
+
+func (ce *ChainingExpression) expressionNode()      {}
+func (ce *ChainingExpression) TokenLiteral() string { return ce.Token.Literal }
+func (ce *ChainingExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(ce.Left.String())
+	out.WriteString(".")
+	out.WriteString(ce.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+func (ce *ChainingExpression) Line() int   { return ce.Token.Line }
+func (ce *ChainingExpression) Column() int { return ce.Token.Column }
+
 func (rs *ReassignmentExpression) expressionNode()      {}
 func (rs *ReassignmentExpression) TokenLiteral() string { return rs.Token.Literal }
 func (rs *ReassignmentExpression) String() string {

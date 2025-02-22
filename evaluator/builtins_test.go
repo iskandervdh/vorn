@@ -2,8 +2,6 @@ package evaluator
 
 import (
 	"testing"
-
-	"github.com/iskandervdh/vorn/ast"
 )
 
 func TestType(t *testing.T) {
@@ -242,76 +240,6 @@ func TestBool(t *testing.T) {
 	testErrorObject(t, testEval(input), "[1:6] argument to `bool` not supported, got CONTINUE")
 }
 
-func TestSplit(t *testing.T) {
-	input := `split("hello world", " ")`
-
-	testArrayObject(t, testEval(input), []string{"hello", "world"})
-
-	input = `split("hello world", "")`
-
-	testArrayObject(t, testEval(input), []string{"h", "e", "l", "l", "o", " ", "w", "o", "r", "l", "d"})
-
-	input = `split("hello world", "o")`
-
-	testArrayObject(t, testEval(input), []string{"hell", " w", "rld"})
-
-	input = `split("hello world")`
-
-	testArrayObject(t, testEval(input), []string{"hello", "world"})
-
-	input = `split("hello world", " ", " ")`
-
-	testErrorObject(t, testEval(input), "[1:7] wrong number of arguments. got 3, want 1 or 2")
-
-	input = `split("hello world", 1)`
-
-	testErrorObject(t, testEval(input), "[1:7] second argument to `split` must be STRING, got INTEGER")
-
-	input = `split(1)`
-
-	testErrorObject(t, testEval(input), "[1:7] first argument to `split` must be STRING, got INTEGER")
-
-	input = `split()`
-
-	testErrorObject(t, testEval(input), "[1:7] wrong number of arguments. got 0, want 1 or 2")
-}
-
-func TestUppercase(t *testing.T) {
-	input := `uppercase("hello")`
-
-	testStringObject(t, testEval(input), "HELLO")
-
-	input = `uppercase("HELLO")`
-
-	testStringObject(t, testEval(input), "HELLO")
-
-	input = `uppercase(1)`
-
-	testErrorObject(t, testEval(input), "[1:11] argument to `uppercase` must be STRING, got INTEGER")
-
-	input = `uppercase("hello", "world")`
-
-	testErrorObject(t, testEval(input), "[1:11] wrong number of arguments. got 2, want 1")
-}
-
-func TestLowercase(t *testing.T) {
-	input := `lowercase("HELLO")`
-
-	testStringObject(t, testEval(input), "hello")
-
-	input = `lowercase("hello")`
-
-	testStringObject(t, testEval(input), "hello")
-
-	input = `lowercase(1)`
-
-	testErrorObject(t, testEval(input), "[1:11] argument to `lowercase` must be STRING, got INTEGER")
-
-	input = `lowercase("hello", "world")`
-
-	testErrorObject(t, testEval(input), "[1:11] wrong number of arguments. got 2, want 1")
-}
-
 func TestLen(t *testing.T) {
 	input := `len([1, 2, 3, 4])`
 
@@ -404,109 +332,6 @@ func TestRest(t *testing.T) {
 	input = `rest([1, 2, 3], [4, 5, 6])`
 
 	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
-}
-
-func TestPush(t *testing.T) {
-	input := `push([1, 2, 3, 4], 5)`
-
-	testArrayObject(t, testEval(input), []string{"1", "2", "3", "4", "5"})
-
-	input = `push([1, 2, 3, 4], 5, 6)`
-
-	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 3, want 2")
-
-	input = `push(1, 2)`
-
-	testErrorObject(t, testEval(input), "[1:6] first argument to `push` must be ARRAY, got INTEGER")
-}
-
-func TestPop(t *testing.T) {
-	input := `pop([1, 2, 3, 4])`
-
-	testArrayObject(t, testEval(input), []string{"1", "2", "3"})
-
-	input = `pop([])`
-
-	testNullObject(t, testEval(input))
-
-	input = `pop(1234)`
-
-	testErrorObject(t, testEval(input), "[1:5] first argument to `pop` must be ARRAY, got INTEGER")
-
-	input = `pop([1, 2, 3], [4, 5, 6])`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 2, want 1")
-}
-
-func TestMap(t *testing.T) {
-	input := `func timesTwo(x) {
-	return x * 2;
-}
-
-map([1, 2, 3, 4], timesTwo);`
-
-	testArrayObject(t, testEval(input), []string{"2", "4", "6", "8"})
-
-	// Test with builtin function
-	input = `map([1, 2, 3, 4], sqrt)`
-
-	testArrayObject(t, testEval(input), []string{"1", "1.4142135623730951", "1.7320508075688772", "2"})
-
-	input = `map([1, 2, 3, 4], 2)`
-
-	testErrorObject(t, testEval(input), "[1:5] second argument to `map` must be FUNCTION or BUILTIN, got INTEGER")
-
-	input = `map([1, 2, 3, 4], sqrt, sqrt)`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 3, want 2")
-
-	input = `map([1, 2, 3, 4])`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 1, want 2")
-
-	input = `map(1, 2)`
-
-	testErrorObject(t, testEval(input), "[1:5] first argument to `map` must be ARRAY, got INTEGER")
-
-	// TestIterMap
-	e := New()
-
-	testErrorObject(t, e.builtinIterMap(&ast.CallExpression{}), "[0:0] wrong number of arguments. got 0, want 2")
-}
-
-func TestReduce(t *testing.T) {
-	input := `func add(x, y) {
-	return x + y;
-}
-
-reduce([1, 2, 3, 4], 0, add);`
-
-	testIntegerObject(t, testEval(input), 10)
-
-	input = `reduce([1, 2, 3], 2, pow)`
-
-	testIntegerObject(t, testEval(input), 64)
-
-	input = `reduce([1, 2, 3, 4], 0, 2)`
-
-	testErrorObject(t, testEval(input), "[1:8] third argument to `reduce` must be FUNCTION or BUILTIN, got INTEGER")
-
-	input = `reduce([1, 2, 3, 4], 0, sqrt, sqrt)`
-
-	testErrorObject(t, testEval(input), "[1:8] wrong number of arguments. got 4, want 3")
-
-	input = `reduce([1, 2, 3, 4], 0)`
-
-	testErrorObject(t, testEval(input), "[1:8] wrong number of arguments. got 2, want 3")
-
-	input = `reduce(1, 2, 3)`
-
-	testErrorObject(t, testEval(input), "[1:8] first argument to `reduce` must be ARRAY, got INTEGER")
-
-	// TestIterReduce
-	e := New()
-
-	testErrorObject(t, e.builtinIterReduce(&ast.CallExpression{}), "[0:0] wrong number of arguments. got 0, want 3")
 }
 
 func TestPrint(t *testing.T) {
@@ -619,4 +444,48 @@ func TestSqrt(t *testing.T) {
 	input = `sqrt(4, 5)`
 
 	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
+}
+
+func TestSin(t *testing.T) {
+	input := `sin(0)`
+
+	testFloatObject(t, testEval(input), 0.0)
+
+	input = `sin(1)`
+
+	testFloatObject(t, testEval(input), 0.8414709848078965)
+
+	input = `sin(1.0)`
+
+	testFloatObject(t, testEval(input), 0.8414709848078965)
+
+	input = `sin("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `sin` must be INTEGER or FLOAT, got STRING")
+
+	input = `sin()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
+}
+
+func TestCos(t *testing.T) {
+	input := `cos(0)`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `cos(1)`
+
+	testFloatObject(t, testEval(input), 0.5403023058681398)
+
+	input = `cos(1.0)`
+
+	testFloatObject(t, testEval(input), 0.5403023058681398)
+
+	input = `cos("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `cos` must be INTEGER or FLOAT, got STRING")
+
+	input = `cos()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
 }

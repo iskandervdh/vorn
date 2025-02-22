@@ -10,7 +10,7 @@ import (
 
 func testEval(input string) object.Object {
 	l := lexer.New(input)
-	p := parser.New(l)
+	p := parser.New(l, false)
 	program := p.ParseProgram()
 	env := object.NewEnvironment()
 
@@ -413,13 +413,13 @@ func TestFunctionObject(t *testing.T) {
 		t.Fatalf("object is not Function. got %T (%+v)", evaluated, evaluated)
 	}
 
-	if len(fn.Parameters) != 1 {
+	if len(fn.Arguments) != 1 {
 		t.Fatalf("function has wrong parameters. Parameters=%+v",
-			fn.Parameters)
+			fn.Arguments)
 	}
 
-	if fn.Parameters[0].String() != "x" {
-		t.Fatalf("parameter is not 'x'. got %q", fn.Parameters[0])
+	if fn.Arguments[0].String() != "x" {
+		t.Fatalf("parameter is not 'x'. got %q", fn.Arguments[0])
 	}
 
 	expectedBody := "(x + 2)"

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/iskandervdh/vorn/constants"
 	"github.com/iskandervdh/vorn/evaluator"
 	"github.com/iskandervdh/vorn/lexer"
 	"github.com/iskandervdh/vorn/object"
@@ -27,7 +28,7 @@ func Start(in io.Reader, out io.Writer) {
 
 		line := scanner.Text()
 		l := lexer.New(line)
-		p := parser.New(l, false)
+		p := parser.New(l, constants.TRACE)
 		program := p.ParseProgram()
 
 		if len(p.Errors()) != 0 {

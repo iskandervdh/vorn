@@ -19,7 +19,7 @@ type Parser struct {
 	l      *lexer.Lexer
 	scope  ast.Scope
 	errors []string
-	debug  bool
+	trace  bool
 
 	currentToken token.Token
 	peekToken    token.Token
@@ -57,11 +57,11 @@ var precedences = map[token.TokenType]int{
 	token.LBRACKET: INDEX,
 }
 
-func New(l *lexer.Lexer, debug bool) *Parser {
+func New(l *lexer.Lexer, trace bool) *Parser {
 	p := &Parser{
 		l:      l,
 		errors: []string{},
-		debug:  debug,
+		trace:  trace,
 	}
 
 	// Read two tokens, so currentToken and peekToken are both set
@@ -332,7 +332,7 @@ func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
 }
 
 func (p *Parser) parseVariableStatement() *ast.VariableStatement {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("VariableStatement"))
 	}
 
@@ -374,7 +374,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 }
 
 func (p *Parser) parseWhileStatement() *ast.WhileStatement {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("WhileStatement"))
 	}
 
@@ -401,7 +401,7 @@ func (p *Parser) parseWhileStatement() *ast.WhileStatement {
 }
 
 func (p *Parser) parseForStatement() *ast.ForStatement {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("ForStatement"))
 	}
 
@@ -458,7 +458,7 @@ func (p *Parser) parseForStatement() *ast.ForStatement {
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("Expression"))
 	}
 
@@ -487,7 +487,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 }
 
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("ExpressionStatement"))
 	}
 
@@ -502,7 +502,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 }
 
 func (p *Parser) parseReassignmentExpression() ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("ReassignmentExpression"))
 	}
 
@@ -541,7 +541,7 @@ func (p *Parser) parseIdentifier() ast.Expression {
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("IntegerLiteral"))
 	}
 
@@ -587,7 +587,7 @@ func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("PrefixExpression"))
 	}
 
@@ -603,7 +603,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("InfixExpression"))
 	}
 
@@ -621,7 +621,7 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("CallExpression"))
 	}
 
@@ -644,7 +644,7 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 }
 
 func (p *Parser) parseIfExpression() ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("IfExpression"))
 	}
 
@@ -689,7 +689,7 @@ func (p *Parser) parseContinueExpression() ast.Expression {
 }
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("BlockStatement"))
 	}
 
@@ -768,7 +768,7 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 }
 
 func (p *Parser) parseStringLiteral() ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("StringLiteral"))
 	}
 
@@ -820,7 +820,7 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseChainingExpression(left ast.Expression) ast.Expression {
-	if p.debug {
+	if p.trace {
 		defer untrace(trace("ChainingExpression"))
 	}
 

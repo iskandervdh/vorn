@@ -620,7 +620,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		_, defined := env.GetFromCurrent(node.Name.Value)
 
 		if defined {
-			return object.NewError(node, "variable already defined: %s", node.Name.Value)
+			return object.NewError(node, "identifier already defined: %s", node.Name.Value)
 		}
 
 		value := e.Eval(node.Value, env)
@@ -632,6 +632,12 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		env.Set(node.Name.Value, value)
 
 	case *ast.FunctionStatement:
+		_, defined := env.GetFromCurrent(node.Name.Value)
+
+		if defined {
+			return object.NewError(node, "identifier already defined: %s", node.Name.Value)
+		}
+
 		params := node.Parameters
 		body := node.Body
 

@@ -40,77 +40,77 @@ func (e *Evaluator) sortObjects(elements []object.Object, reverse bool) []object
 	return sorted
 }
 
-func (e *Evaluator) arrayLength(left *object.Array, args ...object.Object) object.Object {
+func (e *Evaluator) arrayLength(arr *object.Array, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "Array.length() takes no arguments")
+		return object.NewError(arr.Node(), "Array.length() takes no arguments")
 	}
 
-	return object.NewInteger(left.Node(), int64(len(left.Elements)))
+	return object.NewInteger(arr.Node(), int64(len(arr.Elements)))
 }
 
-func (e *Evaluator) arrayPrepend(left *object.Array, args ...object.Object) object.Object {
+func (e *Evaluator) arrayPrepend(arr *object.Array, args ...object.Object) object.Object {
 	if len(args) != 1 {
-		return object.NewError(left.Node(), "Array.prepend() takes exactly 1 argument")
+		return object.NewError(arr.Node(), "Array.prepend() takes exactly 1 argument")
 	}
 
-	left.Elements = append([]object.Object{args[0]}, left.Elements...)
+	arr.Elements = append([]object.Object{args[0]}, arr.Elements...)
 
-	return left
+	return arr
 }
 
-func (e *Evaluator) arrayAppend(left *object.Array, args ...object.Object) object.Object {
+func (e *Evaluator) arrayAppend(arr *object.Array, args ...object.Object) object.Object {
 	if len(args) != 1 {
-		return object.NewError(left.Node(), "Array.append() takes exactly 1 argument")
+		return object.NewError(arr.Node(), "Array.append() takes exactly 1 argument")
 	}
 
-	left.Elements = append(left.Elements, args[0])
+	arr.Elements = append(arr.Elements, args[0])
 
-	return left
+	return arr
 }
 
-func (e *Evaluator) arrayShift(left *object.Array, args ...object.Object) object.Object {
+func (e *Evaluator) arrayShift(arr *object.Array, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "Array.shift() takes no arguments")
+		return object.NewError(arr.Node(), "Array.shift() takes no arguments")
 	}
 
-	if len(left.Elements) == 0 {
-		return object.NewError(left.Node(), "Array.shift() called on empty array")
+	if len(arr.Elements) == 0 {
+		return object.NewError(arr.Node(), "Array.shift() called on empty array")
 	}
 
-	shifted := left.Elements[0]
-	left.Elements = left.Elements[1:]
+	shifted := arr.Elements[0]
+	arr.Elements = arr.Elements[1:]
 
 	return shifted
 }
 
-func (e *Evaluator) arrayPop(left *object.Array, args ...object.Object) object.Object {
+func (e *Evaluator) arrayPop(arr *object.Array, args ...object.Object) object.Object {
 	if len(args) > 1 {
-		return object.NewError(left.Node(), "Array.pop() 0 or 1 argument")
+		return object.NewError(arr.Node(), "Array.pop() 0 or 1 argument")
 	}
 
-	if len(left.Elements) == 0 {
-		return object.NewError(left.Node(), "Array.pop() called on empty array")
+	if len(arr.Elements) == 0 {
+		return object.NewError(arr.Node(), "Array.pop() called on empty array")
 	}
 
 	if len(args) == 1 {
 		if _, ok := args[0].(*object.Integer); !ok {
-			return object.NewError(left.Node(), "Array.pop() argument must be an integer")
+			return object.NewError(arr.Node(), "Array.pop() argument must be an integer")
 		}
 
 		index := args[0].(*object.Integer).Value
 
-		if index < 0 || int(index) >= len(left.Elements) {
-			return object.NewError(left.Node(), "Array.pop() index out of range")
+		if index < 0 || int(index) >= len(arr.Elements) {
+			return object.NewError(arr.Node(), "Array.pop() index out of range")
 		}
 
-		popped := left.Elements[index]
-		left.Elements = append(left.Elements[:index], left.Elements[index+1:]...)
+		popped := arr.Elements[index]
+		arr.Elements = append(arr.Elements[:index], arr.Elements[index+1:]...)
 
 		return popped
 	}
 
-	popped := left.Elements[len(left.Elements)-1]
-	left.Elements = left.Elements[:len(left.Elements)-1]
+	popped := arr.Elements[len(arr.Elements)-1]
+	arr.Elements = arr.Elements[:len(arr.Elements)-1]
 
 	return popped
 }
@@ -631,237 +631,237 @@ func (e *Evaluator) arrayAll(arr *object.Array, args ...object.Object) object.Ob
  * String chaining functions
  */
 
-func (e *Evaluator) stringLength(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringLength(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "String.length() takes no arguments")
+		return object.NewError(str.Node(), "String.length() takes no arguments")
 	}
 
-	return object.NewInteger(left.Node(), int64(len(left.Value)))
+	return object.NewInteger(str.Node(), int64(len(str.Value)))
 }
 
-func (e *Evaluator) stringUpper(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringUpper(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "String.upper() takes no arguments")
+		return object.NewError(str.Node(), "String.upper() takes no arguments")
 	}
 
-	return object.NewString(left.Node(), strings.ToUpper(left.Value))
+	return object.NewString(str.Node(), strings.ToUpper(str.Value))
 }
 
-func (e *Evaluator) stringLower(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringLower(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "String.lower() takes no arguments")
+		return object.NewError(str.Node(), "String.lower() takes no arguments")
 	}
 
-	return object.NewString(left.Node(), strings.ToLower(left.Value))
+	return object.NewString(str.Node(), strings.ToLower(str.Value))
 }
 
-func (e *Evaluator) stringSplit(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringSplit(str *object.String, args ...object.Object) object.Object {
 	if len(args) > 1 {
-		return object.NewError(left.Node(), "String.split() takes at most 1 argument, got %d", len(args))
+		return object.NewError(str.Node(), "String.split() takes at most 1 argument, got %d", len(args))
 	}
 
 	separator := " "
 
 	if len(args) == 1 {
 		if args[0].Type() != object.STRING_OBJ {
-			return object.NewError(left.Node(), "argument to `split` must be STRING, got %s", args[0].Type())
+			return object.NewError(str.Node(), "argument to `split` must be STRING, got %s", args[0].Type())
 		}
 
 		separator = args[0].(*object.String).Value
 	}
 
-	parts := strings.Split(left.Value, separator)
+	parts := strings.Split(str.Value, separator)
 	elements := make([]object.Object, len(parts))
 
 	for i, part := range parts {
-		elements[i] = object.NewString(left.Node(), part)
+		elements[i] = object.NewString(str.Node(), part)
 	}
 
-	return object.NewArray(left.Node(), elements)
+	return object.NewArray(str.Node(), elements)
 }
 
-func (e *Evaluator) stringContains(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringContains(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 1 {
-		return object.NewError(left.Node(), "String.contains() takes exactly 1 argument")
+		return object.NewError(str.Node(), "String.contains() takes exactly 1 argument")
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(left.Node(), "argument to `contains` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `contains` must be STRING, got %s", args[0].Type())
 	}
 
-	return e.nativeBoolToBooleanObject(strings.Contains(left.Value, args[0].(*object.String).Value))
+	return e.nativeBoolToBooleanObject(strings.Contains(str.Value, args[0].(*object.String).Value))
 }
 
-func (e *Evaluator) stringReplace(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringReplace(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 2 {
-		return object.NewError(left.Node(), "String.replace() takes exactly 2 arguments")
+		return object.NewError(str.Node(), "String.replace() takes exactly 2 arguments")
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(left.Node(), "first argument to `replace` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "first argument to `replace` must be STRING, got %s", args[0].Type())
 	}
 
 	if args[1].Type() != object.STRING_OBJ {
-		return object.NewError(left.Node(), "second argument to `replace` must be STRING, got %s", args[1].Type())
+		return object.NewError(str.Node(), "second argument to `replace` must be STRING, got %s", args[1].Type())
 	}
 
-	return object.NewString(left.Node(), strings.ReplaceAll(left.Value, args[0].(*object.String).Value, args[1].(*object.String).Value))
+	return object.NewString(str.Node(), strings.ReplaceAll(str.Value, args[0].(*object.String).Value, args[1].(*object.String).Value))
 }
 
-func (e *Evaluator) stringTrim(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringTrim(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "String.trim() takes no arguments")
+		return object.NewError(str.Node(), "String.trim() takes no arguments")
 	}
 
-	return object.NewString(left.Node(), strings.TrimSpace(left.Value))
+	return object.NewString(str.Node(), strings.TrimSpace(str.Value))
 }
 
-func (e *Evaluator) stringTrimStart(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringTrimStart(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "String.trimStart() takes no arguments")
+		return object.NewError(str.Node(), "String.trimStart() takes no arguments")
 	}
 
-	return object.NewString(left.Node(), strings.TrimLeft(left.Value, " \t\n\r"))
+	return object.NewString(str.Node(), strings.TrimLeft(str.Value, " \t\n\r"))
 }
 
-func (e *Evaluator) stringTrimEnd(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringTrimEnd(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "String.trimEnd() takes no arguments")
+		return object.NewError(str.Node(), "String.trimEnd() takes no arguments")
 	}
 
-	return object.NewString(left.Node(), strings.TrimRight(left.Value, " \t\n\r"))
+	return object.NewString(str.Node(), strings.TrimRight(str.Value, " \t\n\r"))
 }
 
-func (e *Evaluator) stringRepeat(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringRepeat(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 1 {
-		return object.NewError(left.Node(), "String.repeat() takes exactly 1 argument")
+		return object.NewError(str.Node(), "String.repeat() takes exactly 1 argument")
 	}
 
 	if args[0].Type() != object.INTEGER_OBJ {
-		return object.NewError(left.Node(), "argument to `repeat` must be INTEGER, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `repeat` must be INTEGER, got %s", args[0].Type())
 	}
 
-	return object.NewString(left.Node(), strings.Repeat(left.Value, int(args[0].(*object.Integer).Value)))
+	return object.NewString(str.Node(), strings.Repeat(str.Value, int(args[0].(*object.Integer).Value)))
 }
 
-func (e *Evaluator) stringReverse(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringReverse(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "String.reverse() takes no arguments")
+		return object.NewError(str.Node(), "String.reverse() takes no arguments")
 	}
 
-	runes := []rune(left.Value)
+	runes := []rune(str.Value)
 
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
 		runes[i], runes[j] = runes[j], runes[i]
 	}
 
-	return object.NewString(left.Node(), string(runes))
+	return object.NewString(str.Node(), string(runes))
 }
 
-func (e *Evaluator) stringSlice(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringSlice(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 2 {
-		return object.NewError(left.Node(), "String.slice() takes exactly 2 arguments")
+		return object.NewError(str.Node(), "String.slice() takes exactly 2 arguments")
 	}
 
 	if args[0].Type() != object.INTEGER_OBJ {
-		return object.NewError(left.Node(), "first argument to `slice` must be INTEGER, got %s", args[0].Type())
+		return object.NewError(str.Node(), "first argument to `slice` must be INTEGER, got %s", args[0].Type())
 	}
 
 	if args[1].Type() != object.INTEGER_OBJ {
-		return object.NewError(left.Node(), "second argument to `slice` must be INTEGER, got %s", args[1].Type())
+		return object.NewError(str.Node(), "second argument to `slice` must be INTEGER, got %s", args[1].Type())
 	}
 
 	start := int(args[0].(*object.Integer).Value)
 	end := int(args[1].(*object.Integer).Value)
 
-	if start < 0 || start > len(left.Value) {
-		return object.NewError(left.Node(), "first argument to `slice` out of range")
+	if start < 0 || start > len(str.Value) {
+		return object.NewError(str.Node(), "first argument to `slice` out of range")
 	}
 
-	if end < 0 || end > len(left.Value) {
-		return object.NewError(left.Node(), "second argument to `slice` out of range")
+	if end < 0 || end > len(str.Value) {
+		return object.NewError(str.Node(), "second argument to `slice` out of range")
 	}
 
-	return object.NewString(left.Node(), left.Value[start:end])
+	return object.NewString(str.Node(), str.Value[start:end])
 }
 
-func (e *Evaluator) stringStartsWith(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringStartsWith(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 1 {
-		return object.NewError(left.Node(), "String.startsWith() takes exactly 1 argument")
+		return object.NewError(str.Node(), "String.startsWith() takes exactly 1 argument")
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(left.Node(), "argument to `startsWith` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `startsWith` must be STRING, got %s", args[0].Type())
 	}
 
-	return e.nativeBoolToBooleanObject(strings.HasPrefix(left.Value, args[0].(*object.String).Value))
+	return e.nativeBoolToBooleanObject(strings.HasPrefix(str.Value, args[0].(*object.String).Value))
 }
 
-func (e *Evaluator) stringEndsWith(left *object.String, args ...object.Object) object.Object {
+func (e *Evaluator) stringEndsWith(str *object.String, args ...object.Object) object.Object {
 	if len(args) != 1 {
-		return object.NewError(left.Node(), "String.endsWith() takes exactly 1 argument")
+		return object.NewError(str.Node(), "String.endsWith() takes exactly 1 argument")
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(left.Node(), "argument to `endsWith` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `endsWith` must be STRING, got %s", args[0].Type())
 	}
 
-	return e.nativeBoolToBooleanObject(strings.HasSuffix(left.Value, args[0].(*object.String).Value))
+	return e.nativeBoolToBooleanObject(strings.HasSuffix(str.Value, args[0].(*object.String).Value))
 }
 
 /**
  * Object chaining functions
  */
 
-func (e *Evaluator) objectKeys(left *object.Hash, args ...object.Object) object.Object {
+func (e *Evaluator) objectKeys(hash *object.Hash, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "Object.keys() takes no arguments")
+		return object.NewError(hash.Node(), "Object.keys() takes no arguments")
 	}
 
-	keys := make([]object.Object, len(left.Pairs))
+	keys := make([]object.Object, len(hash.Pairs))
 
 	i := 0
 
-	for key := range left.Pairs {
-		keys[i] = object.NewString(left.Node(), left.Pairs[key].Key.Inspect())
+	for key := range hash.Pairs {
+		keys[i] = object.NewString(hash.Node(), hash.Pairs[key].Key.Inspect())
 		i++
 	}
 
-	return object.NewArray(left.Node(), keys)
+	return object.NewArray(hash.Node(), keys)
 }
 
-func (e *Evaluator) objectValues(left *object.Hash, args ...object.Object) object.Object {
+func (e *Evaluator) objectValues(hash *object.Hash, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "Object.values() takes no arguments")
+		return object.NewError(hash.Node(), "Object.values() takes no arguments")
 	}
 
-	values := make([]object.Object, len(left.Pairs))
+	values := make([]object.Object, len(hash.Pairs))
 
 	i := 0
 
-	for _, pair := range left.Pairs {
+	for _, pair := range hash.Pairs {
 		values[i] = pair.Value
 
 		i++
 	}
 
-	return object.NewArray(left.Node(), values)
+	return object.NewArray(hash.Node(), values)
 }
 
-func (e *Evaluator) objectItems(left *object.Hash, args ...object.Object) object.Object {
+func (e *Evaluator) objectItems(hash *object.Hash, args ...object.Object) object.Object {
 	if len(args) != 0 {
-		return object.NewError(left.Node(), "Object.items() takes no arguments")
+		return object.NewError(hash.Node(), "Object.items() takes no arguments")
 	}
 
-	items := make([]object.Object, len(left.Pairs))
+	items := make([]object.Object, len(hash.Pairs))
 
 	i := 0
 
-	for key, pair := range left.Pairs {
-		items[i] = object.NewArray(left.Node(), []object.Object{object.NewString(left.Node(), left.Pairs[key].Key.Inspect()), pair.Value})
+	for key, pair := range hash.Pairs {
+		items[i] = object.NewArray(hash.Node(), []object.Object{object.NewString(hash.Node(), hash.Pairs[key].Key.Inspect()), pair.Value})
 
 		i++
 	}
 
-	return object.NewArray(left.Node(), items)
+	return object.NewArray(hash.Node(), items)
 }

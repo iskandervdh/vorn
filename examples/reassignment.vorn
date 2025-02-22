@@ -6,13 +6,25 @@ print(x);
 
 const ANSWER = "YES";
 
-func x() {
+x = func() {
     let ANSWER = "NO";
 
     ANSWER = "MAYBE";
 
     return ANSWER;
-}
+};
 
 print(x());
 print(ANSWER);
+
+let y = func() {
+    let z = 3;
+
+    return z;
+};
+
+print(y());
+
+y = "something";
+
+print(y);

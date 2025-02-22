@@ -3,14 +3,14 @@ package parser
 import (
 	"fmt"
 	"strings"
+
+	"github.com/iskandervdh/vorn/constants"
 )
 
 var traceLevel int = 0
 
-const traceIdentPlaceholder string = "  "
-
 func identLevel() string {
-	return strings.Repeat(traceIdentPlaceholder, traceLevel-1)
+	return strings.Repeat(constants.INDENT_STRING, traceLevel-1)
 }
 
 func tracePrint(fs string) {

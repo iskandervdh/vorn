@@ -2,8 +2,10 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
+	"github.com/iskandervdh/vorn/constants"
 	"github.com/iskandervdh/vorn/token"
 )
 
@@ -91,9 +93,22 @@ func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
 func (bs *BlockStatement) String() string {
 	var out bytes.Buffer
 
-	for _, s := range bs.Statements {
-		out.WriteString(s.String())
+	scopeToCheck := bs.Parent
+	scopeLevel := 0
+
+	for scopeToCheck != nil {
+		scopeLevel++
+
+		scopeToCheck = scopeToCheck.GetParentScope()
 	}
+
+	out.WriteString("{\n")
+
+	for _, s := range bs.Statements {
+		out.WriteString(fmt.Sprintf("%s%s\n", strings.Repeat(constants.INDENT_STRING, scopeLevel), s.String()))
+	}
+
+	out.WriteString("}")
 
 	return out.String()
 }

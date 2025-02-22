@@ -332,6 +332,10 @@ func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
 }
 
 func (p *Parser) parseVariableStatement() *ast.VariableStatement {
+	if p.debug {
+		defer untrace(trace("VariableStatement"))
+	}
+
 	statement := &ast.VariableStatement{Token: p.currentToken}
 
 	if !p.expectPeek(token.IDENT) {

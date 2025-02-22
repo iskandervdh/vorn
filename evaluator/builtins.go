@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 
 	"github.com/iskandervdh/vorn/ast"
 	"github.com/iskandervdh/vorn/object"
@@ -150,67 +149,6 @@ func (e *Evaluator) builtinBool(node ast.Node, args ...object.Object) object.Obj
 	default:
 		return object.NewError(node, "argument to `bool` not supported, got %s", args[0].Type())
 	}
-}
-
-// String functions
-
-func (e *Evaluator) builtinSplit(node ast.Node, args ...object.Object) object.Object {
-	if len(args) == 0 || len(args) > 2 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 1 or 2", len(args))
-	}
-
-	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(node, "first argument to `split` must be STRING, got %s", args[0].Type())
-	}
-
-	separator := " "
-
-	if len(args) == 2 {
-		if args[1].Type() != object.STRING_OBJ {
-			return object.NewError(node, "second argument to `split` must be STRING, got %s", args[1].Type())
-		}
-
-		separator = args[1].(*object.String).Value
-	}
-
-	str := args[0].(*object.String).Value
-
-	parts := strings.Split(str, separator)
-	elements := make([]object.Object, len(parts))
-
-	for i, part := range parts {
-		elements[i] = object.NewString(node, part)
-	}
-
-	return object.NewArray(node, elements)
-}
-
-func (e *Evaluator) builtinUppercase(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 1 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
-	}
-
-	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(node, "argument to `uppercase` must be STRING, got %s", args[0].Type())
-	}
-
-	str := args[0].(*object.String).Value
-
-	return object.NewString(node, strings.ToUpper(str))
-}
-
-func (e *Evaluator) builtinLowercase(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 1 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
-	}
-
-	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(node, "argument to `lowercase` must be STRING, got %s", args[0].Type())
-	}
-
-	str := args[0].(*object.String).Value
-
-	return object.NewString(node, strings.ToLower(str))
 }
 
 // String & Array functions

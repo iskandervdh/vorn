@@ -242,76 +242,6 @@ func TestBool(t *testing.T) {
 	testErrorObject(t, testEval(input), "[1:6] argument to `bool` not supported, got CONTINUE")
 }
 
-func TestSplit(t *testing.T) {
-	input := `split("hello world", " ")`
-
-	testArrayObject(t, testEval(input), []string{"hello", "world"})
-
-	input = `split("hello world", "")`
-
-	testArrayObject(t, testEval(input), []string{"h", "e", "l", "l", "o", " ", "w", "o", "r", "l", "d"})
-
-	input = `split("hello world", "o")`
-
-	testArrayObject(t, testEval(input), []string{"hell", " w", "rld"})
-
-	input = `split("hello world")`
-
-	testArrayObject(t, testEval(input), []string{"hello", "world"})
-
-	input = `split("hello world", " ", " ")`
-
-	testErrorObject(t, testEval(input), "[1:7] wrong number of arguments. got 3, want 1 or 2")
-
-	input = `split("hello world", 1)`
-
-	testErrorObject(t, testEval(input), "[1:7] second argument to `split` must be STRING, got INTEGER")
-
-	input = `split(1)`
-
-	testErrorObject(t, testEval(input), "[1:7] first argument to `split` must be STRING, got INTEGER")
-
-	input = `split()`
-
-	testErrorObject(t, testEval(input), "[1:7] wrong number of arguments. got 0, want 1 or 2")
-}
-
-func TestUppercase(t *testing.T) {
-	input := `uppercase("hello")`
-
-	testStringObject(t, testEval(input), "HELLO")
-
-	input = `uppercase("HELLO")`
-
-	testStringObject(t, testEval(input), "HELLO")
-
-	input = `uppercase(1)`
-
-	testErrorObject(t, testEval(input), "[1:11] argument to `uppercase` must be STRING, got INTEGER")
-
-	input = `uppercase("hello", "world")`
-
-	testErrorObject(t, testEval(input), "[1:11] wrong number of arguments. got 2, want 1")
-}
-
-func TestLowercase(t *testing.T) {
-	input := `lowercase("HELLO")`
-
-	testStringObject(t, testEval(input), "hello")
-
-	input = `lowercase("hello")`
-
-	testStringObject(t, testEval(input), "hello")
-
-	input = `lowercase(1)`
-
-	testErrorObject(t, testEval(input), "[1:11] argument to `lowercase` must be STRING, got INTEGER")
-
-	input = `lowercase("hello", "world")`
-
-	testErrorObject(t, testEval(input), "[1:11] wrong number of arguments. got 2, want 1")
-}
-
 func TestLen(t *testing.T) {
 	input := `len([1, 2, 3, 4])`
 
@@ -404,38 +334,6 @@ func TestRest(t *testing.T) {
 	input = `rest([1, 2, 3], [4, 5, 6])`
 
 	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
-}
-
-func TestPush(t *testing.T) {
-	input := `push([1, 2, 3, 4], 5)`
-
-	testArrayObject(t, testEval(input), []string{"1", "2", "3", "4", "5"})
-
-	input = `push([1, 2, 3, 4], 5, 6)`
-
-	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 3, want 2")
-
-	input = `push(1, 2)`
-
-	testErrorObject(t, testEval(input), "[1:6] first argument to `push` must be ARRAY, got INTEGER")
-}
-
-func TestPop(t *testing.T) {
-	input := `pop([1, 2, 3, 4])`
-
-	testArrayObject(t, testEval(input), []string{"1", "2", "3"})
-
-	input = `pop([])`
-
-	testNullObject(t, testEval(input))
-
-	input = `pop(1234)`
-
-	testErrorObject(t, testEval(input), "[1:5] first argument to `pop` must be ARRAY, got INTEGER")
-
-	input = `pop([1, 2, 3], [4, 5, 6])`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 2, want 1")
 }
 
 func TestMap(t *testing.T) {

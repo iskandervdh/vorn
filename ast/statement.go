@@ -135,9 +135,9 @@ func (ws *WhileStatement) TokenLiteral() string { return ws.Token.Literal }
 func (ws *WhileStatement) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("while")
+	out.WriteString("while (")
 	out.WriteString(ws.Condition.String())
-	out.WriteString(" ")
+	out.WriteString(") ")
 	out.WriteString(ws.Consequence.String())
 
 	return out.String()
@@ -161,13 +161,13 @@ func (fs *ForStatement) TokenLiteral() string { return fs.Token.Literal }
 func (fs *ForStatement) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("for")
+	out.WriteString("for (")
 	out.WriteString(fs.Init.String())
 	out.WriteString("; ")
 	out.WriteString(fs.Condition.String())
 	out.WriteString("; ")
 	out.WriteString(fs.Update.String())
-	out.WriteString(" ")
+	out.WriteString(") ")
 	out.WriteString(fs.Body.String())
 
 	return out.String()

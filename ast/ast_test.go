@@ -12,8 +12,8 @@ func TestString(t *testing.T) {
 			&VariableStatement{
 				Token: token.Token{Type: token.LET, Literal: "let"},
 				Name: &Identifier{
-					Token: token.Token{Type: token.IDENT, Literal: "myVar"},
-					Value: "myVar",
+					Token: token.Token{Type: token.IDENT, Literal: "someVar"},
+					Value: "someVar",
 				},
 				Value: &Identifier{
 					Token: token.Token{Type: token.IDENT, Literal: "anotherVar"},
@@ -22,7 +22,7 @@ func TestString(t *testing.T) {
 			},
 		},
 	}
-	if program.String() != "let myVar = anotherVar;" {
+	if program.String() != "let someVar = anotherVar;" {
 		t.Errorf("program.String() wrong. got '%q'", program.String())
 	}
 }

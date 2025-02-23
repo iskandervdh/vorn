@@ -528,15 +528,15 @@ func TestArrayIndexExpressions(t *testing.T) {
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[2];",
+			"let arr = [1, 2, 3]; arr[2];",
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			"let arr = [1, 2, 3]; arr[0] + arr[1] + arr[2];",
 			6,
 		},
 		{
-			"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+			"let arr = [1, 2, 3]; let i = arr[0]; arr[i]",
 			2,
 		},
 		{

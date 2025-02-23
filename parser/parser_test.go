@@ -960,7 +960,7 @@ func TestParsingArrayLiterals(t *testing.T) {
 }
 
 func TestParsingIndexExpressions(t *testing.T) {
-	program := initializeParserTest(t, "myArray[1 + 1]", 1)
+	program := initializeParserTest(t, "arr[1 + 1]", 1)
 
 	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
 
@@ -974,7 +974,7 @@ func TestParsingIndexExpressions(t *testing.T) {
 		t.Fatalf("indexExpression not *ast.IndexExpression. got %T", statement.Expression)
 	}
 
-	if !checkIdentifier(t, indexExpression.Left, "myArray") {
+	if !checkIdentifier(t, indexExpression.Left, "arr") {
 		return
 	}
 

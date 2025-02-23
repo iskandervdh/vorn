@@ -149,6 +149,32 @@ func (l *Lexer) NextToken() token.Token {
 		t = token.New(token.LBRACKET, l.char, l.line, l.column)
 	case ']':
 		t = token.New(token.RBRACKET, l.char, l.line, l.column)
+	case '|':
+		if l.peekChar() == '|' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.OR,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		}
+	case '&':
+		if l.peekChar() == '&' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.AND,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		}
 	case 0:
 		t.Line = l.line
 		t.Column = l.column

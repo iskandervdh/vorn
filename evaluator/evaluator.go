@@ -382,16 +382,26 @@ func (e *Evaluator) evalStringInfixExpression(node *ast.InfixExpression, left, r
 
 func (e *Evaluator) evalInfixExpression(node *ast.InfixExpression, left, right object.Object) object.Object {
 	switch {
+	case node.Operator == token.OR:
+		return e.nativeBoolToBooleanObject(
+			e.builtinBool(node, left).(*object.Boolean).Value || e.builtinBool(node, right).(*object.Boolean).Value,
+		)
+
+	case node.Operator == token.AND:
+		return e.nativeBoolToBooleanObject(
+			e.builtinBool(node, left).(*object.Boolean).Value && e.builtinBool(node, right).(*object.Boolean).Value,
+		)
+
 	case object.IsNumber(left) && object.IsNumber(right):
 		return e.evalNumberInfixExpression(node, left, right)
 
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return e.evalStringInfixExpression(node, left, right)
 
-	case node.Operator == "==":
+	case node.Operator == token.EQ:
 		return e.nativeBoolToBooleanObject(left == right)
 
-	case node.Operator == "!=":
+	case node.Operator == token.NOT_EQ:
 		return e.nativeBoolToBooleanObject(left != right)
 
 	case left.Type() != right.Type():

@@ -31,6 +31,8 @@ type Parser struct {
 const (
 	_ int = iota
 	LOWEST
+	OR           // ||
+	AND          // &&
 	EQUALS       // ==
 	LESS_GREATER // > or <
 	SUM          // +
@@ -42,6 +44,8 @@ const (
 )
 
 var precedences = map[token.TokenType]int{
+	token.OR:       OR,
+	token.AND:      AND,
 	token.EQ:       EQUALS,
 	token.NOT_EQ:   EQUALS,
 	token.LT:       LESS_GREATER,
@@ -116,6 +120,8 @@ func (p *Parser) registerInfixFunctions() {
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.LTE, p.parseInfixExpression)
 	p.registerInfix(token.GTE, p.parseInfixExpression)
+	p.registerInfix(token.OR, p.parseInfixExpression)
+	p.registerInfix(token.AND, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 	p.registerInfix(token.DOT, p.parseChainingExpression)

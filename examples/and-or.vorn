@@ -1,0 +1,11 @@
+if ((2 > 3 || 1 == 1) && 2 == 2) {
+    print("Yes");
+} else {
+    print("No");
+}
+
+if (1 && 2) {
+    print("Yes");
+} else {
+    print("No");
+}

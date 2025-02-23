@@ -37,6 +37,9 @@ const (
 	EQ     = "=="
 	NOT_EQ = "!="
 
+	OR  = "||"
+	AND = "&&"
+
 	// Delimiters
 	DOT       = "."
 	COMMA     = ","

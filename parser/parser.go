@@ -41,9 +41,7 @@ const (
 	SUM          // + or -
 	PRODUCT      // * or /
 	PREFIX       // -x or !x
-	CHAIN        // object.property or object.method(args)
-	CALL         // myFunction(X)
-	INDEX        // array[index]
+	POSTFIX      // object.property, object.method(args), function(X), array[index]
 )
 
 /*
@@ -63,9 +61,9 @@ var precedences = map[token.TokenType]int{
 	token.ASTERISK: PRODUCT,
 	token.SLASH:    PRODUCT,
 	token.PERCENT:  PRODUCT,
-	token.DOT:      CHAIN,
-	token.LPAREN:   CALL,
-	token.LBRACKET: INDEX,
+	token.DOT:      POSTFIX,
+	token.LPAREN:   POSTFIX,
+	token.LBRACKET: POSTFIX,
 }
 
 /*

@@ -60,8 +60,9 @@ var precedences = map[token.TokenType]int{
 	token.GTE:      LESS_GREATER,
 	token.PLUS:     SUM,
 	token.MINUS:    SUM,
-	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.SLASH:    PRODUCT,
+	token.PERCENT:  PRODUCT,
 	token.DOT:      CHAIN,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
@@ -123,8 +124,9 @@ func (p *Parser) registerInfix(tokenType token.TokenType, function infixParseFun
 func (p *Parser) registerInfixFunctions() {
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
-	p.registerInfix(token.SLASH, p.parseInfixExpression)
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
+	p.registerInfix(token.SLASH, p.parseInfixExpression)
+	p.registerInfix(token.PERCENT, p.parseInfixExpression)
 	p.registerInfix(token.EQ, p.parseInfixExpression)
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)

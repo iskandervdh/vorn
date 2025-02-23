@@ -29,6 +29,7 @@ const (
 	EXCLAMATION = "!"
 	ASTERISK    = "*"
 	SLASH       = "/"
+	PERCENT     = "%"
 
 	// Comparison operators
 	LT  = "<"

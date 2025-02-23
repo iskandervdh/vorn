@@ -291,25 +291,27 @@ func (e *Evaluator) evalIntegerInfixExpression(node *ast.InfixExpression, left o
 	rightVal := right.(*object.Integer).Value
 
 	switch node.Operator {
-	case "+":
+	case token.PLUS:
 		return object.NewInteger(node, leftVal+rightVal)
-	case "-":
+	case token.MINUS:
 		return object.NewInteger(node, leftVal-rightVal)
-	case "*":
+	case token.ASTERISK:
 		return object.NewInteger(node, leftVal*rightVal)
-	case "/":
+	case token.SLASH:
 		return object.NewFloat(node, float64(leftVal)/float64(rightVal))
-	case "<":
+	case token.PERCENT:
+		return object.NewInteger(node, leftVal%rightVal)
+	case token.LT:
 		return e.nativeBoolToBooleanObject(leftVal < rightVal)
-	case ">":
+	case token.GT:
 		return e.nativeBoolToBooleanObject(leftVal > rightVal)
-	case "<=":
+	case token.LTE:
 		return e.nativeBoolToBooleanObject(leftVal <= rightVal)
-	case ">=":
+	case token.GTE:
 		return e.nativeBoolToBooleanObject(leftVal >= rightVal)
-	case "==":
+	case token.EQ:
 		return e.nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
+	case token.NOT_EQ:
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
@@ -321,25 +323,25 @@ func (e *Evaluator) evalFloatInfixExpression(node *ast.InfixExpression, left obj
 	rightVal := right.(*object.Float).Value
 
 	switch node.Operator {
-	case "+":
+	case token.PLUS:
 		return object.NewFloat(node, leftVal+rightVal)
-	case "-":
+	case token.MINUS:
 		return object.NewFloat(node, leftVal-rightVal)
-	case "*":
+	case token.ASTERISK:
 		return object.NewFloat(node, leftVal*rightVal)
-	case "/":
+	case token.SLASH:
 		return object.NewFloat(node, leftVal/rightVal)
-	case "<":
+	case token.LT:
 		return e.nativeBoolToBooleanObject(leftVal < rightVal)
-	case ">":
+	case token.GT:
 		return e.nativeBoolToBooleanObject(leftVal > rightVal)
-	case "<=":
+	case token.LTE:
 		return e.nativeBoolToBooleanObject(leftVal <= rightVal)
-	case ">=":
+	case token.GTE:
 		return e.nativeBoolToBooleanObject(leftVal >= rightVal)
-	case "==":
+	case token.EQ:
 		return e.nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
+	case token.NOT_EQ:
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())

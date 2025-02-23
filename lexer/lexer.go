@@ -70,14 +70,16 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			t = token.New(token.EXCLAMATION, l.char, l.line, l.column)
 		}
+	case '*':
+		t = token.New(token.ASTERISK, l.char, l.line, l.column)
 	case '/':
 		t = l.skipComment()
 
 		if t.Type == token.COMMENT {
 			return l.NextToken()
 		}
-	case '*':
-		t = token.New(token.ASTERISK, l.char, l.line, l.column)
+	case '%':
+		t = token.New(token.PERCENT, l.char, l.line, l.column)
 	case '<':
 		if l.peekChar() == '=' {
 			char := l.char

@@ -21,8 +21,9 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 
 ## Planned features
 
-* Error handling
+* Assignment operators
 * Ternaries
+* Error handling
 * Modules/Namespaces/Importing
 * Standard library
 * Code formatter/Linter

@@ -70,7 +70,7 @@ func TestVariableStatement(t *testing.T) {
 		t.Errorf("program.String() wrong. got '%q'", program.String())
 	}
 
-	if program.Statements[0].String() != "let myVar = anotherVar;" {
+	if program.Statements[0].String() != "let someVar = anotherVar;" {
 		t.Errorf("program.Statements[0].String() wrong. got '%q'", program.Statements[0].String())
 	}
 

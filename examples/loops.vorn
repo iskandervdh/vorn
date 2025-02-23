@@ -29,3 +29,11 @@ for (; k < 10;) {
 }
 
 print(k); // 6
+
+for (let l = 0; l < 3; l = l + 1) {
+    if (l == 1) {
+        continue;
+    }
+
+    print(l);
+}

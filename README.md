@@ -4,25 +4,27 @@
 
 vorn is a simple interpreted C-like scripting language that I'm making to learn more about language design and implementation.
 
-## Current features
+## Features
 
 * Integers, Floats, Booleans and Strings
 * Arithmetic operations
+* Logical operators
 * Comparison operators
 * Variables
 * Comments
-* Arrays and Hashes
+* Arrays and Object
 * If statements
 * For and While loops
 * Functions
-* Built-in functions (See [evaluator.go](evaluator/evaluator.go#L23) for a complete list)
+* Built-in functions (See [evaluator.go](evaluator/evaluator.go#L54) for a complete list)
+* Function chaining (See [evaluator.go](evaluator/evaluator.go#L87))
 * A REPL
 
 ## Planned features
 
-* Function chaining
-* Error handling
+* Assignment operators
 * Ternaries
+* Error handling
 * Modules/Namespaces/Importing
 * Standard library
 * Code formatter/Linter

@@ -1,0 +1,14 @@
+print(abs(-5));
+print(abs(5));
+
+print(pow(2, 3));
+print(sqrt(9));
+
+print(sin(45));
+print(cos(45));
+print(tan(45));
+
+let arr = [1, 2, 3, 4, 5];
+
+print(sum(arr));
+print(mean(arr));

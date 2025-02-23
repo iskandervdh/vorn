@@ -142,29 +142,29 @@ func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 func (e *Error) Node() ast.Node   { return e.node }
 
 type Function struct {
-	node       ast.Node
-	Parameters []*ast.Identifier
-	Body       *ast.BlockStatement
-	Env        *Environment
+	node      ast.Node
+	Arguments []*ast.Identifier
+	Body      *ast.BlockStatement
+	Env       *Environment
 }
 
-func NewFunction(node ast.Node, parameters []*ast.Identifier, body *ast.BlockStatement, env *Environment) *Function {
-	return &Function{node: node, Parameters: parameters, Body: body, Env: env}
+func NewFunction(node ast.Node, args []*ast.Identifier, body *ast.BlockStatement, env *Environment) *Function {
+	return &Function{node: node, Arguments: args, Body: body, Env: env}
 }
 
 func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
 func (f *Function) Inspect() string {
 	var out bytes.Buffer
 
-	params := []string{}
+	args := []string{}
 
-	for _, p := range f.Parameters {
-		params = append(params, p.String())
+	for _, p := range f.Arguments {
+		args = append(args, p.String())
 	}
 
 	out.WriteString("func")
 	out.WriteString("(")
-	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(strings.Join(args, ", "))
 	out.WriteString(") {\n")
 	out.WriteString(f.Body.String())
 	out.WriteString("\n}")
@@ -189,8 +189,9 @@ func (s *String) Node() ast.Node   { return s.node }
 type BuiltinFunction func(node ast.Node, args ...Object) Object
 
 type Builtin struct {
-	node     ast.Node
-	Function BuiltinFunction
+	node           ast.Node
+	Function       BuiltinFunction
+	ArgumentsCount int
 }
 
 func NewBuiltin(node ast.Node, fn BuiltinFunction) *Builtin {
@@ -309,7 +310,7 @@ func Clone(node ast.Node, object Object) Object {
 	case ERROR_OBJ:
 		return &Error{node: node, Message: object.(*String).Value}
 	case FUNCTION_OBJ:
-		return NewFunction(node, object.(*Function).Parameters, object.(*Function).Body, object.(*Function).Env)
+		return NewFunction(node, object.(*Function).Arguments, object.(*Function).Body, object.(*Function).Env)
 	case STRING_OBJ:
 		return NewString(node, object.(*String).Value)
 	case BUILTIN_OBJ:

@@ -70,14 +70,16 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			t = token.New(token.EXCLAMATION, l.char, l.line, l.column)
 		}
+	case '*':
+		t = token.New(token.ASTERISK, l.char, l.line, l.column)
 	case '/':
 		t = l.skipComment()
 
 		if t.Type == token.COMMENT {
 			return l.NextToken()
 		}
-	case '*':
-		t = token.New(token.ASTERISK, l.char, l.line, l.column)
+	case '%':
+		t = token.New(token.PERCENT, l.char, l.line, l.column)
 	case '<':
 		if l.peekChar() == '=' {
 			char := l.char
@@ -86,6 +88,17 @@ func (l *Lexer) NextToken() token.Token {
 
 			t = token.Token{
 				Type:    token.LTE,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else if l.peekChar() == '<' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.LEFT_SHIFT,
 				Literal: literal,
 				Line:    l.line,
 				Column:  l.column,
@@ -101,6 +114,17 @@ func (l *Lexer) NextToken() token.Token {
 
 			t = token.Token{
 				Type:    token.GTE,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else if l.peekChar() == '>' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.RIGHT_SHIFT,
 				Literal: literal,
 				Line:    l.line,
 				Column:  l.column,
@@ -149,6 +173,40 @@ func (l *Lexer) NextToken() token.Token {
 		t = token.New(token.LBRACKET, l.char, l.line, l.column)
 	case ']':
 		t = token.New(token.RBRACKET, l.char, l.line, l.column)
+	case '|':
+		if l.peekChar() == '|' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.OR,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		}
+
+		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
+	case '&':
+		if l.peekChar() == '&' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.AND,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		}
+
+		t = token.New(token.BITWISE_AND, l.char, l.line, l.column)
+	case '^':
+		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
+	case '~':
+		t = token.New(token.BITWISE_NOT, l.char, l.line, l.column)
 	case 0:
 		t.Line = l.line
 		t.Column = l.column

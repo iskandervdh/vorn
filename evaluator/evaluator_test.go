@@ -370,7 +370,7 @@ if (10 > 1) {
 		},
 		{
 			`{"name": "Vorn"}[func(x) { x }];`,
-			"[1:19] unusable as hash key: FUNCTION",
+			"[1:19] unusable as object key: FUNCTION",
 		},
 	}
 
@@ -407,25 +407,24 @@ func TestLetStatements(t *testing.T) {
 func TestFunctionObject(t *testing.T) {
 	input := "func(x) { x + 2; };"
 	evaluated := testEval(input)
-	fn, ok := evaluated.(*object.Function)
+	function, ok := evaluated.(*object.Function)
 
 	if !ok {
 		t.Fatalf("object is not Function. got %T (%+v)", evaluated, evaluated)
 	}
 
-	if len(fn.Parameters) != 1 {
-		t.Fatalf("function has wrong parameters. Parameters=%+v",
-			fn.Parameters)
+	if len(function.Arguments) != 1 {
+		t.Fatalf("function has wrong arguments. Arguments=%+v", function.Arguments)
 	}
 
-	if fn.Parameters[0].String() != "x" {
-		t.Fatalf("parameter is not 'x'. got %q", fn.Parameters[0])
+	if function.Arguments[0].String() != "x" {
+		t.Fatalf("argument is not 'x'. got %q", function.Arguments[0])
 	}
 
-	expectedBody := "(x + 2)"
+	expectedBody := "{\n  (x + 2)\n}"
 
-	if fn.Body.String() != expectedBody {
-		t.Fatalf("body is not %q. got %q", expectedBody, fn.Body.String())
+	if function.Body.String() != expectedBody {
+		t.Fatalf("body is not %q. got %q", expectedBody, function.Body.String())
 	}
 }
 
@@ -529,15 +528,15 @@ func TestArrayIndexExpressions(t *testing.T) {
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[2];",
+			"let arr = [1, 2, 3]; arr[2];",
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			"let arr = [1, 2, 3]; arr[0] + arr[1] + arr[2];",
 			6,
 		},
 		{
-			"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+			"let arr = [1, 2, 3]; let i = arr[0]; arr[i]",
 			2,
 		},
 		{

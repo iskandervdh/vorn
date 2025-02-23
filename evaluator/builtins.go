@@ -241,134 +241,6 @@ func (e *Evaluator) builtinRest(node ast.Node, args ...object.Object) object.Obj
 	return NULL
 }
 
-func (e *Evaluator) builtinPush(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 2 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 2", len(args))
-	}
-
-	if args[0].Type() != object.ARRAY_OBJ {
-		return object.NewError(node, "first argument to `push` must be ARRAY, got %s", args[0].Type())
-	}
-
-	arr := args[0].(*object.Array)
-	length := len(arr.Elements)
-	elements := make([]object.Object, length+1)
-
-	for i := 0; i < length; i++ {
-		elements[i] = object.Clone(node, arr.Elements[i])
-	}
-
-	elements[length] = object.Clone(node, args[1])
-
-	return object.NewArray(node, elements)
-}
-
-func (e *Evaluator) builtinPop(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 1 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
-	}
-
-	if args[0].Type() != object.ARRAY_OBJ {
-		return object.NewError(node, "first argument to `pop` must be ARRAY, got %s", args[0].Type())
-	}
-
-	arr := args[0].(*object.Array)
-	length := len(arr.Elements)
-
-	if length > 0 {
-		elements := make([]object.Object, length-1)
-
-		for i := 0; i < length-1; i++ {
-			elements[i] = object.Clone(node, arr.Elements[i])
-		}
-
-		return object.NewArray(node, elements)
-	}
-
-	return NULL
-}
-
-func (e *Evaluator) builtinIterMap(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 3 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 2", len(args))
-	}
-
-	arr := args[0].(*object.Array)
-	accumulated := args[1]
-	f := args[2]
-
-	if e.builtinLen(node, arr).Inspect() == "0" {
-		return accumulated
-	}
-
-	return e.builtinIterMap(
-		node,
-		e.builtinRest(node, arr),
-		e.builtinPush(node, accumulated, e.applyFunction(nil, f, []object.Object{e.builtinFirst(node, arr)})),
-		f,
-	)
-}
-
-func (e *Evaluator) builtinMap(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 2 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 2", len(args))
-	}
-
-	if args[0].Type() != object.ARRAY_OBJ {
-		return object.NewError(node, "first argument to `map` must be ARRAY, got %s", args[0].Type())
-	}
-
-	if args[1].Type() != object.FUNCTION_OBJ && args[1].Type() != object.BUILTIN_OBJ {
-		return object.NewError(node, "second argument to `map` must be FUNCTION or BUILTIN, got %s", args[1].Type())
-	}
-
-	arr := args[0].(*object.Array)
-	f := args[1]
-
-	return e.builtinIterMap(node, arr, &object.Array{Elements: []object.Object{}}, f)
-}
-
-func (e *Evaluator) builtinIterReduce(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 3 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 3", len(args))
-	}
-
-	arr := args[0].(*object.Array)
-	result := args[1]
-	f := args[2]
-
-	if e.builtinLen(node, arr).Inspect() == "0" {
-		return result
-	}
-
-	return e.builtinIterReduce(
-		node,
-		e.builtinRest(node, arr),
-		e.applyFunction(nil, f, []object.Object{result, e.builtinFirst(node, arr)}),
-		f,
-	)
-}
-
-func (e *Evaluator) builtinReduce(node ast.Node, args ...object.Object) object.Object {
-	if len(args) != 3 {
-		return object.NewError(node, "wrong number of arguments. got %d, want 3", len(args))
-	}
-
-	if args[0].Type() != object.ARRAY_OBJ {
-		return object.NewError(node, "first argument to `reduce` must be ARRAY, got %s", args[0].Type())
-	}
-
-	if args[2].Type() != object.FUNCTION_OBJ && args[2].Type() != object.BUILTIN_OBJ {
-		return object.NewError(node, "third argument to `reduce` must be FUNCTION or BUILTIN, got %s", args[2].Type())
-	}
-
-	arr := args[0].(*object.Array)
-	initial := args[1]
-	f := args[2]
-
-	return e.builtinIterReduce(node, arr, initial, f)
-}
-
 // IO functions
 
 func (e *Evaluator) builtinPrint(node ast.Node, args ...object.Object) object.Object {
@@ -483,4 +355,144 @@ func (e *Evaluator) builtinSqrt(node ast.Node, args ...object.Object) object.Obj
 	sqrt := math.Sqrt(x)
 
 	return &object.Float{Value: sqrt}
+}
+
+func (e *Evaluator) builtinSin(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if !object.IsNumber(args[0]) {
+		return object.NewError(node, "argument to `sin` must be INTEGER or FLOAT, got %s", args[0].Type())
+	}
+
+	var x float64
+
+	if args[0].Type() == object.FLOAT_OBJ {
+		x = args[0].(*object.Float).Value
+	} else if args[0].Type() == object.INTEGER_OBJ {
+		x = float64(args[0].(*object.Integer).Value)
+	}
+
+	sin := math.Sin(x)
+
+	return &object.Float{Value: sin}
+}
+
+func (e *Evaluator) builtinCos(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if !object.IsNumber(args[0]) {
+		return object.NewError(node, "argument to `cos` must be INTEGER or FLOAT, got %s", args[0].Type())
+	}
+
+	var x float64
+
+	if args[0].Type() == object.FLOAT_OBJ {
+		x = args[0].(*object.Float).Value
+	} else if args[0].Type() == object.INTEGER_OBJ {
+		x = float64(args[0].(*object.Integer).Value)
+	}
+
+	cos := math.Cos(x)
+
+	return &object.Float{Value: cos}
+}
+
+func (e *Evaluator) builtinTan(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if !object.IsNumber(args[0]) {
+		return object.NewError(node, "argument to `tan` must be INTEGER or FLOAT, got %s", args[0].Type())
+	}
+
+	var x float64
+
+	if args[0].Type() == object.FLOAT_OBJ {
+		x = args[0].(*object.Float).Value
+	}
+
+	if args[0].Type() == object.INTEGER_OBJ {
+		x = float64(args[0].(*object.Integer).Value)
+	}
+
+	tan := math.Tan(x)
+
+	return &object.Float{Value: tan}
+}
+
+func (e *Evaluator) builtinSum(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if args[0].Type() != object.ARRAY_OBJ {
+		return object.NewError(node, "argument to `sum` must be ARRAY, got %s", args[0].Type())
+	}
+
+	arr := args[0].(*object.Array)
+
+	var sum float64
+
+	for _, element := range arr.Elements {
+		if !object.IsNumber(element) {
+			return object.NewError(node, "elements in array must be INTEGER or FLOAT, got %s", element.Type())
+		}
+
+		if element.Type() == object.FLOAT_OBJ {
+			sum += element.(*object.Float).Value
+		} else if element.Type() == object.INTEGER_OBJ {
+			sum += float64(element.(*object.Integer).Value)
+		}
+	}
+
+	// Check if the sum is an integer
+	if sum == float64(int64(sum)) {
+		return &object.Integer{Value: int64(sum)}
+	}
+
+	return &object.Float{Value: sum}
+}
+
+func (e *Evaluator) builtinMean(node ast.Node, args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return object.NewError(node, "wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	if args[0].Type() != object.ARRAY_OBJ {
+		return object.NewError(node, "argument to `mean` must be ARRAY, got %s", args[0].Type())
+	}
+
+	arr := args[0].(*object.Array)
+
+	if len(arr.Elements) == 0 {
+		return &object.Integer{Value: 0}
+	}
+
+	var sum float64
+
+	for _, element := range arr.Elements {
+		if !object.IsNumber(element) {
+			return object.NewError(node, "elements in array must be INTEGER or FLOAT, got %s", element.Type())
+		}
+
+		if element.Type() == object.FLOAT_OBJ {
+			sum += element.(*object.Float).Value
+		} else if element.Type() == object.INTEGER_OBJ {
+			sum += float64(element.(*object.Integer).Value)
+		}
+	}
+
+	mean := sum / float64(len(arr.Elements))
+
+	// Check if the mean is an integer
+	if mean == float64(int64(mean)) {
+		return &object.Integer{Value: int64(mean)}
+	}
+
+	return &object.Float{Value: mean}
 }

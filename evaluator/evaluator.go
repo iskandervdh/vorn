@@ -4,15 +4,23 @@ import (
 	"fmt"
 
 	"github.com/iskandervdh/vorn/ast"
-	"github.com/iskandervdh/vorn/evaluator/chaining"
 	"github.com/iskandervdh/vorn/object"
 	"github.com/iskandervdh/vorn/token"
 )
 
+type StringChainingFunction func(left *object.String, args ...object.Object) object.Object
+type ArrayChainingFunction func(left *object.Array, args ...object.Object) object.Object
+type ObjectChainingFunction func(left *object.Hash, args ...object.Object) object.Object
+
 type Evaluator struct {
 	builtins map[string]*object.Builtin
+
+	stringChainingFunctions map[string]StringChainingFunction
+	arrayChainingFunctions  map[string]ArrayChainingFunction
+	objectChainingFunctions map[string]ObjectChainingFunction
 }
 
+// Reusable objects for TRUE, FALSE and NULL
 var (
 	NULL = object.NewNull(&ast.NullLiteral{
 		Token: token.Token{
@@ -45,32 +53,79 @@ func New() *Evaluator {
 
 	e.builtins = map[string]*object.Builtin{
 		// Common
-		"type":  {Function: e.builtinType},
-		"range": {Function: e.builtinRange},
+		"type":  {Function: e.builtinType, ArgumentsCount: 1},
+		"range": {Function: e.builtinRange, ArgumentsCount: -1}, // Variable amount of arguments
 
 		// Conversions
-		"int":    {Function: e.builtinInt},
-		"float":  {Function: e.builtinFloat},
-		"string": {Function: e.builtinString},
-		"bool":   {Function: e.builtinBool},
+		"int":    {Function: e.builtinInt, ArgumentsCount: 1},
+		"float":  {Function: e.builtinFloat, ArgumentsCount: 1},
+		"string": {Function: e.builtinString, ArgumentsCount: 1},
+		"bool":   {Function: e.builtinBool, ArgumentsCount: 1},
 
 		// Strings & Arrays
-		"len":   {Function: e.builtinLen},
-		"first": {Function: e.builtinFirst},
-		"last":  {Function: e.builtinLast},
+		"len":   {Function: e.builtinLen, ArgumentsCount: 1},
+		"first": {Function: e.builtinFirst, ArgumentsCount: 1},
+		"last":  {Function: e.builtinLast, ArgumentsCount: 1},
 
 		// Arrays
-		"rest":   {Function: e.builtinRest},
-		"map":    {Function: e.builtinMap},
-		"reduce": {Function: e.builtinReduce},
+		"rest": {Function: e.builtinRest, ArgumentsCount: 1},
 
 		// IO
-		"print": {Function: e.builtinPrint},
+		"print": {Function: e.builtinPrint, ArgumentsCount: -1}, // Variable amount of arguments
 
 		// Math
-		"abs":  {Function: e.builtinAbs},
-		"pow":  {Function: e.builtinPow},
-		"sqrt": {Function: e.builtinSqrt},
+		"abs":  {Function: e.builtinAbs, ArgumentsCount: 1},
+		"pow":  {Function: e.builtinPow, ArgumentsCount: 2},
+		"sqrt": {Function: e.builtinSqrt, ArgumentsCount: 1},
+		"sin":  {Function: e.builtinSin, ArgumentsCount: 1},
+		"cos":  {Function: e.builtinCos, ArgumentsCount: 1},
+		"tan":  {Function: e.builtinTan, ArgumentsCount: 1},
+		"sum":  {Function: e.builtinSum, ArgumentsCount: 1},
+		"mean": {Function: e.builtinMean, ArgumentsCount: 1},
+	}
+
+	e.stringChainingFunctions = map[string]StringChainingFunction{
+		"length":     e.stringLength,
+		"upper":      e.stringUpper,
+		"lower":      e.stringLower,
+		"split":      e.stringSplit,
+		"contains":   e.stringContains,
+		"replace":    e.stringReplace,
+		"trim":       e.stringTrim,
+		"trimStart":  e.stringTrimStart,
+		"trimEnd":    e.stringTrimEnd,
+		"repeat":     e.stringRepeat,
+		"reverse":    e.stringReverse,
+		"slice":      e.stringSlice,
+		"startsWith": e.stringStartsWith,
+		"endsWith":   e.stringEndsWith,
+	}
+
+	e.arrayChainingFunctions = map[string]ArrayChainingFunction{
+		"length":   e.arrayLength,
+		"prepend":  e.arrayPrepend,
+		"append":   e.arrayAppend,
+		"shift":    e.arrayShift,
+		"pop":      e.arrayPop,
+		"concat":   e.arrayConcat,
+		"map":      e.arrayMap,
+		"filter":   e.arrayFilter,
+		"reduce":   e.arrayReduce,
+		"contains": e.arrayContains,
+		"indexOf":  e.arrayIndexOf,
+		"find":     e.arrayFind,
+		"join":     e.arrayJoin,
+		"reverse":  e.arrayReverse,
+		"slice":    e.arraySlice,
+		"sort":     e.arraySort,
+		"any":      e.arrayAny,
+		"every":    e.arrayAll,
+	}
+
+	e.objectChainingFunctions = map[string]ObjectChainingFunction{
+		"keys":   e.objectKeys,
+		"values": e.objectValues,
+		"items":  e.objectItems,
 	}
 
 	return e
@@ -220,12 +275,25 @@ func (e *Evaluator) evalMinusPrefixOperatorExpression(right object.Object) objec
 	}
 }
 
+func (e *Evaluator) evalBitwiseNotOperatorExpression(right object.Object) object.Object {
+	switch right.Type() {
+	case object.INTEGER_OBJ:
+		value := right.(*object.Integer).Value
+		return object.NewInteger(right.Node(), ^value)
+
+	default:
+		return object.NewError(right.Node(), "unknown operator: ~%s", right.Type())
+	}
+}
+
 func (e *Evaluator) evalPrefixExpression(node *ast.PrefixExpression, right object.Object) object.Object {
 	switch node.Operator {
-	case "!":
+	case token.EXCLAMATION:
 		return e.evalExclamationOperatorExpression(right)
-	case "-":
+	case token.MINUS:
 		return e.evalMinusPrefixOperatorExpression(right)
+	case token.BITWISE_NOT:
+		return e.evalBitwiseNotOperatorExpression(right)
 	default:
 		return object.NewError(node, "unknown operator: %s%s", node.Operator, right.Type())
 	}
@@ -236,25 +304,37 @@ func (e *Evaluator) evalIntegerInfixExpression(node *ast.InfixExpression, left o
 	rightVal := right.(*object.Integer).Value
 
 	switch node.Operator {
-	case "+":
+	case token.PLUS:
 		return object.NewInteger(node, leftVal+rightVal)
-	case "-":
+	case token.MINUS:
 		return object.NewInteger(node, leftVal-rightVal)
-	case "*":
+	case token.ASTERISK:
 		return object.NewInteger(node, leftVal*rightVal)
-	case "/":
+	case token.SLASH:
 		return object.NewFloat(node, float64(leftVal)/float64(rightVal))
-	case "<":
+	case token.PERCENT:
+		return object.NewInteger(node, leftVal%rightVal)
+	case token.BITWISE_OR:
+		return object.NewInteger(node, leftVal|rightVal)
+	case token.BITWISE_AND:
+		return object.NewInteger(node, leftVal&rightVal)
+	case token.BITWISE_XOR:
+		return object.NewInteger(node, leftVal^rightVal)
+	case token.LEFT_SHIFT:
+		return object.NewInteger(node, leftVal<<rightVal)
+	case token.RIGHT_SHIFT:
+		return object.NewInteger(node, leftVal>>rightVal)
+	case token.LT:
 		return e.nativeBoolToBooleanObject(leftVal < rightVal)
-	case ">":
+	case token.GT:
 		return e.nativeBoolToBooleanObject(leftVal > rightVal)
-	case "<=":
+	case token.LTE:
 		return e.nativeBoolToBooleanObject(leftVal <= rightVal)
-	case ">=":
+	case token.GTE:
 		return e.nativeBoolToBooleanObject(leftVal >= rightVal)
-	case "==":
+	case token.EQ:
 		return e.nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
+	case token.NOT_EQ:
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
@@ -266,25 +346,25 @@ func (e *Evaluator) evalFloatInfixExpression(node *ast.InfixExpression, left obj
 	rightVal := right.(*object.Float).Value
 
 	switch node.Operator {
-	case "+":
+	case token.PLUS:
 		return object.NewFloat(node, leftVal+rightVal)
-	case "-":
+	case token.MINUS:
 		return object.NewFloat(node, leftVal-rightVal)
-	case "*":
+	case token.ASTERISK:
 		return object.NewFloat(node, leftVal*rightVal)
-	case "/":
+	case token.SLASH:
 		return object.NewFloat(node, leftVal/rightVal)
-	case "<":
+	case token.LT:
 		return e.nativeBoolToBooleanObject(leftVal < rightVal)
-	case ">":
+	case token.GT:
 		return e.nativeBoolToBooleanObject(leftVal > rightVal)
-	case "<=":
+	case token.LTE:
 		return e.nativeBoolToBooleanObject(leftVal <= rightVal)
-	case ">=":
+	case token.GTE:
 		return e.nativeBoolToBooleanObject(leftVal >= rightVal)
-	case "==":
+	case token.EQ:
 		return e.nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
+	case token.NOT_EQ:
 		return e.nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
@@ -327,16 +407,26 @@ func (e *Evaluator) evalStringInfixExpression(node *ast.InfixExpression, left, r
 
 func (e *Evaluator) evalInfixExpression(node *ast.InfixExpression, left, right object.Object) object.Object {
 	switch {
+	case node.Operator == token.OR:
+		return e.nativeBoolToBooleanObject(
+			e.builtinBool(node, left).(*object.Boolean).Value || e.builtinBool(node, right).(*object.Boolean).Value,
+		)
+
+	case node.Operator == token.AND:
+		return e.nativeBoolToBooleanObject(
+			e.builtinBool(node, left).(*object.Boolean).Value && e.builtinBool(node, right).(*object.Boolean).Value,
+		)
+
 	case object.IsNumber(left) && object.IsNumber(right):
 		return e.evalNumberInfixExpression(node, left, right)
 
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return e.evalStringInfixExpression(node, left, right)
 
-	case node.Operator == "==":
+	case node.Operator == token.EQ:
 		return e.nativeBoolToBooleanObject(left == right)
 
-	case node.Operator == "!=":
+	case node.Operator == token.NOT_EQ:
 		return e.nativeBoolToBooleanObject(left != right)
 
 	case left.Type() != right.Type():
@@ -416,8 +506,8 @@ func (e *Evaluator) evalExpressions(expressions []ast.Expression, env *object.En
 func (e *Evaluator) extendFunctionEnv(function *object.Function, args []object.Object) *object.Environment {
 	env := object.NewEnclosedEnvironment(function.Env)
 
-	for paramIdx, param := range function.Parameters {
-		env.Set(param.Value, args[paramIdx])
+	for i, argument := range function.Arguments {
+		env.Set(argument.Value, args[i])
 	}
 
 	return env
@@ -468,7 +558,7 @@ func (e *Evaluator) evalHashIndexExpression(hash, index object.Object) object.Ob
 
 	if !ok {
 		fmt.Println(index.Type())
-		return object.NewError(index.Node(), "unusable as hash key: %s", index.Type())
+		return object.NewError(index.Node(), "unusable as object key: %s", index.Type())
 	}
 
 	pair, ok := hashObject.Pairs[key.HashKey()]
@@ -504,7 +594,7 @@ func (e *Evaluator) evalHashLiteral(node *ast.HashLiteral, env *object.Environme
 		hashKey, ok := key.(object.Hashable)
 
 		if !ok {
-			return object.NewError(node, "unusable as hash key: %s", key.Type())
+			return object.NewError(node, "unusable as object key: %s", key.Type())
 		}
 
 		value := e.Eval(valueNode, env)
@@ -530,7 +620,7 @@ func (e *Evaluator) evalChainingCallExpression(left ast.Node, rightCallExpressio
 
 	switch leftValue := leftValue.(type) {
 	case *object.String:
-		chainingFunction, ok := chaining.StringChainingFunctions[rightCallExpression.Function.TokenLiteral()]
+		chainingFunction, ok := e.stringChainingFunctions[rightCallExpression.Function.TokenLiteral()]
 
 		if !ok {
 			return object.NewError(rightCallExpression.Function, "String has no method %s", rightCallExpression.Function.TokenLiteral())
@@ -538,10 +628,18 @@ func (e *Evaluator) evalChainingCallExpression(left ast.Node, rightCallExpressio
 
 		return chainingFunction(leftValue, args...)
 	case *object.Array:
-		chainingFunction, ok := chaining.ArrayChainingFunctions[rightCallExpression.Function.TokenLiteral()]
+		chainingFunction, ok := e.arrayChainingFunctions[rightCallExpression.Function.TokenLiteral()]
 
 		if !ok {
 			return object.NewError(rightCallExpression.Function, "Array has no method %s", rightCallExpression.Function.TokenLiteral())
+		}
+
+		return chainingFunction(leftValue, args...)
+	case *object.Hash:
+		chainingFunction, ok := e.objectChainingFunctions[rightCallExpression.Function.TokenLiteral()]
+
+		if !ok {
+			return object.NewError(rightCallExpression.Function, "Object has no method %s", rightCallExpression.Function.TokenLiteral())
 		}
 
 		return chainingFunction(leftValue, args...)
@@ -595,7 +693,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		_, defined := env.GetFromCurrent(node.Name.Value)
 
 		if defined {
-			return object.NewError(node, "variable already defined: %s", node.Name.Value)
+			return object.NewError(node, "identifier already defined: %s", node.Name.Value)
 		}
 
 		value := e.Eval(node.Value, env)
@@ -607,10 +705,16 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		env.Set(node.Name.Value, value)
 
 	case *ast.FunctionStatement:
-		params := node.Parameters
+		_, defined := env.GetFromCurrent(node.Name.Value)
+
+		if defined {
+			return object.NewError(node, "identifier already defined: %s", node.Name.Value)
+		}
+
+		args := node.Arguments
 		body := node.Body
 
-		function := object.NewFunction(node, params, body, env)
+		function := object.NewFunction(node, args, body, env)
 
 		env.Set(node.Name.Value, function)
 
@@ -685,10 +789,10 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		return e.evalIdentifier(node, env)
 
 	case *ast.FunctionLiteral:
-		params := node.Parameters
+		args := node.Arguments
 		body := node.Body
 
-		return object.NewFunction(node, params, body, env)
+		return object.NewFunction(node, args, body, env)
 
 	case *ast.CallExpression:
 		function := e.Eval(node.Function, env)

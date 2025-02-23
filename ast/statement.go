@@ -2,8 +2,10 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
+	"github.com/iskandervdh/vorn/constants"
 	"github.com/iskandervdh/vorn/token"
 )
 
@@ -91,9 +93,22 @@ func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
 func (bs *BlockStatement) String() string {
 	var out bytes.Buffer
 
-	for _, s := range bs.Statements {
-		out.WriteString(s.String())
+	scopeToCheck := bs.Parent
+	scopeLevel := 0
+
+	for scopeToCheck != nil {
+		scopeLevel++
+
+		scopeToCheck = scopeToCheck.GetParentScope()
 	}
+
+	out.WriteString("{\n")
+
+	for _, s := range bs.Statements {
+		out.WriteString(fmt.Sprintf("%s%s\n", strings.Repeat(constants.INDENT_STRING, scopeLevel), s.String()))
+	}
+
+	out.WriteString("}")
 
 	return out.String()
 }
@@ -169,9 +184,9 @@ func (fs *ForStatement) GetScopeStatements() []Statement {
 }
 
 type FunctionStatement struct {
-	Token      token.Token // the 'func' token
-	Name       *Identifier
-	Parameters []*Identifier
+	Token     token.Token // the 'func' token
+	Name      *Identifier
+	Arguments []*Identifier
 
 	Body *BlockStatement
 }
@@ -181,17 +196,17 @@ func (fs *FunctionStatement) TokenLiteral() string { return fs.Token.Literal }
 func (fs *FunctionStatement) String() string {
 	var out bytes.Buffer
 
-	params := []string{}
+	args := []string{}
 
-	for _, p := range fs.Parameters {
-		params = append(params, p.String())
+	for _, p := range fs.Arguments {
+		args = append(args, p.String())
 	}
 
 	out.WriteString(fs.TokenLiteral())
 	out.WriteString(" ")
 	out.WriteString(fs.Name.String())
 	out.WriteString("(")
-	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(strings.Join(args, ", "))
 	out.WriteString(") ")
 
 	out.WriteString(fs.Body.String())

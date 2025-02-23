@@ -2,8 +2,6 @@ package evaluator
 
 import (
 	"testing"
-
-	"github.com/iskandervdh/vorn/ast"
 )
 
 func TestType(t *testing.T) {
@@ -336,77 +334,6 @@ func TestRest(t *testing.T) {
 	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
 }
 
-func TestMap(t *testing.T) {
-	input := `func timesTwo(x) {
-	return x * 2;
-}
-
-map([1, 2, 3, 4], timesTwo);`
-
-	testArrayObject(t, testEval(input), []string{"2", "4", "6", "8"})
-
-	// Test with builtin function
-	input = `map([1, 2, 3, 4], sqrt)`
-
-	testArrayObject(t, testEval(input), []string{"1", "1.4142135623730951", "1.7320508075688772", "2"})
-
-	input = `map([1, 2, 3, 4], 2)`
-
-	testErrorObject(t, testEval(input), "[1:5] second argument to `map` must be FUNCTION or BUILTIN, got INTEGER")
-
-	input = `map([1, 2, 3, 4], sqrt, sqrt)`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 3, want 2")
-
-	input = `map([1, 2, 3, 4])`
-
-	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 1, want 2")
-
-	input = `map(1, 2)`
-
-	testErrorObject(t, testEval(input), "[1:5] first argument to `map` must be ARRAY, got INTEGER")
-
-	// TestIterMap
-	e := New()
-
-	testErrorObject(t, e.builtinIterMap(&ast.CallExpression{}), "[0:0] wrong number of arguments. got 0, want 2")
-}
-
-func TestReduce(t *testing.T) {
-	input := `func add(x, y) {
-	return x + y;
-}
-
-reduce([1, 2, 3, 4], 0, add);`
-
-	testIntegerObject(t, testEval(input), 10)
-
-	input = `reduce([1, 2, 3], 2, pow)`
-
-	testIntegerObject(t, testEval(input), 64)
-
-	input = `reduce([1, 2, 3, 4], 0, 2)`
-
-	testErrorObject(t, testEval(input), "[1:8] third argument to `reduce` must be FUNCTION or BUILTIN, got INTEGER")
-
-	input = `reduce([1, 2, 3, 4], 0, sqrt, sqrt)`
-
-	testErrorObject(t, testEval(input), "[1:8] wrong number of arguments. got 4, want 3")
-
-	input = `reduce([1, 2, 3, 4], 0)`
-
-	testErrorObject(t, testEval(input), "[1:8] wrong number of arguments. got 2, want 3")
-
-	input = `reduce(1, 2, 3)`
-
-	testErrorObject(t, testEval(input), "[1:8] first argument to `reduce` must be ARRAY, got INTEGER")
-
-	// TestIterReduce
-	e := New()
-
-	testErrorObject(t, e.builtinIterReduce(&ast.CallExpression{}), "[0:0] wrong number of arguments. got 0, want 3")
-}
-
 func TestPrint(t *testing.T) {
 	input := `print("hello", "world")`
 
@@ -517,4 +444,126 @@ func TestSqrt(t *testing.T) {
 	input = `sqrt(4, 5)`
 
 	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
+}
+
+func TestSin(t *testing.T) {
+	input := `sin(0)`
+
+	testFloatObject(t, testEval(input), 0.0)
+
+	input = `sin(1)`
+
+	testFloatObject(t, testEval(input), 0.8414709848078965)
+
+	input = `sin(1.0)`
+
+	testFloatObject(t, testEval(input), 0.8414709848078965)
+
+	input = `sin("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `sin` must be INTEGER or FLOAT, got STRING")
+
+	input = `sin()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
+}
+
+func TestCos(t *testing.T) {
+	input := `cos(0)`
+
+	testFloatObject(t, testEval(input), 1.0)
+
+	input = `cos(1)`
+
+	testFloatObject(t, testEval(input), 0.5403023058681398)
+
+	input = `cos(1.0)`
+
+	testFloatObject(t, testEval(input), 0.5403023058681398)
+
+	input = `cos("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `cos` must be INTEGER or FLOAT, got STRING")
+
+	input = `cos()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
+}
+
+func TestTan(t *testing.T) {
+	input := `tan(0)`
+
+	testFloatObject(t, testEval(input), 0.0)
+
+	input = `tan(1)`
+
+	testFloatObject(t, testEval(input), 1.557407724654902)
+
+	input = `tan(1.0)`
+
+	testFloatObject(t, testEval(input), 1.557407724654902)
+
+	input = `tan("test")`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `tan` must be INTEGER or FLOAT, got STRING")
+
+	input = `tan()`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 0, want 1")
+}
+
+func TestSum(t *testing.T) {
+	input := `sum([1, 2, 3, 4])`
+
+	testIntegerObject(t, testEval(input), 10)
+
+	input = `sum([])`
+
+	testIntegerObject(t, testEval(input), 0)
+
+	input = `sum([1, 2, 3, 4.5])`
+
+	testFloatObject(t, testEval(input), 10.5)
+
+	input = `sum([1, 2, 3, 4], [5, 6, 7, 8])`
+
+	testErrorObject(t, testEval(input), "[1:5] wrong number of arguments. got 2, want 1")
+
+	input = `sum(1)`
+
+	testErrorObject(t, testEval(input), "[1:5] argument to `sum` must be ARRAY, got INTEGER")
+
+	input = `sum([1, 2, 3, "4"])`
+
+	testErrorObject(t, testEval(input), "[1:5] elements in array must be INTEGER or FLOAT, got STRING")
+}
+
+func TestMean(t *testing.T) {
+	input := `mean([1, 2, 3, 4])`
+
+	testFloatObject(t, testEval(input), 2.5)
+
+	input = `mean([1, 2, 3, 4, 5])`
+
+	testIntegerObject(t, testEval(input), 3)
+
+	input = `mean([])`
+
+	testIntegerObject(t, testEval(input), 0)
+
+	input = `mean([1, 2, 3, 4.5])`
+
+	testFloatObject(t, testEval(input), 2.625)
+
+	input = `mean([1, 2, 3, 4], [5, 6, 7, 8])`
+
+	testErrorObject(t, testEval(input), "[1:6] wrong number of arguments. got 2, want 1")
+
+	input = `mean(1)`
+
+	testErrorObject(t, testEval(input), "[1:6] argument to `mean` must be ARRAY, got INTEGER")
+
+	input = `mean([1, 2, 3, "4"])`
+
+	testErrorObject(t, testEval(input), "[1:6] elements in array must be INTEGER or FLOAT, got STRING")
 }

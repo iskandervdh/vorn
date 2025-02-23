@@ -1,0 +1,5 @@
+const X = {"a": 1, "b": 2};
+
+print(X.keys());
+print(X.values());
+print(X.items());

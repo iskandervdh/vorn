@@ -8,6 +8,7 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 
 * Integers, Floats, Booleans and Strings
 * Arithmetic operations
+* Logical operators
 * Comparison operators
 * Variables
 * Comments

@@ -92,6 +92,17 @@ func (l *Lexer) NextToken() token.Token {
 				Line:    l.line,
 				Column:  l.column,
 			}
+		} else if l.peekChar() == '<' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.LEFT_SHIFT,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
 		} else {
 			t = token.New(token.LT, l.char, l.line, l.column)
 		}
@@ -103,6 +114,17 @@ func (l *Lexer) NextToken() token.Token {
 
 			t = token.Token{
 				Type:    token.GTE,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else if l.peekChar() == '>' {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+
+			t = token.Token{
+				Type:    token.RIGHT_SHIFT,
 				Literal: literal,
 				Line:    l.line,
 				Column:  l.column,
@@ -164,6 +186,8 @@ func (l *Lexer) NextToken() token.Token {
 				Column:  l.column,
 			}
 		}
+
+		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
 	case '&':
 		if l.peekChar() == '&' {
 			char := l.char
@@ -177,6 +201,12 @@ func (l *Lexer) NextToken() token.Token {
 				Column:  l.column,
 			}
 		}
+
+		t = token.New(token.BITWISE_AND, l.char, l.line, l.column)
+	case '^':
+		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
+	case '~':
+		t = token.New(token.BITWISE_NOT, l.char, l.line, l.column)
 	case 0:
 		t.Line = l.line
 		t.Column = l.column

@@ -275,12 +275,25 @@ func (e *Evaluator) evalMinusPrefixOperatorExpression(right object.Object) objec
 	}
 }
 
+func (e *Evaluator) evalBitwiseNotOperatorExpression(right object.Object) object.Object {
+	switch right.Type() {
+	case object.INTEGER_OBJ:
+		value := right.(*object.Integer).Value
+		return object.NewInteger(right.Node(), ^value)
+
+	default:
+		return object.NewError(right.Node(), "unknown operator: ~%s", right.Type())
+	}
+}
+
 func (e *Evaluator) evalPrefixExpression(node *ast.PrefixExpression, right object.Object) object.Object {
 	switch node.Operator {
-	case "!":
+	case token.EXCLAMATION:
 		return e.evalExclamationOperatorExpression(right)
-	case "-":
+	case token.MINUS:
 		return e.evalMinusPrefixOperatorExpression(right)
+	case token.BITWISE_NOT:
+		return e.evalBitwiseNotOperatorExpression(right)
 	default:
 		return object.NewError(node, "unknown operator: %s%s", node.Operator, right.Type())
 	}
@@ -301,6 +314,16 @@ func (e *Evaluator) evalIntegerInfixExpression(node *ast.InfixExpression, left o
 		return object.NewFloat(node, float64(leftVal)/float64(rightVal))
 	case token.PERCENT:
 		return object.NewInteger(node, leftVal%rightVal)
+	case token.BITWISE_OR:
+		return object.NewInteger(node, leftVal|rightVal)
+	case token.BITWISE_AND:
+		return object.NewInteger(node, leftVal&rightVal)
+	case token.BITWISE_XOR:
+		return object.NewInteger(node, leftVal^rightVal)
+	case token.LEFT_SHIFT:
+		return object.NewInteger(node, leftVal<<rightVal)
+	case token.RIGHT_SHIFT:
+		return object.NewInteger(node, leftVal>>rightVal)
 	case token.LT:
 		return e.nativeBoolToBooleanObject(leftVal < rightVal)
 	case token.GT:

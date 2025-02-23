@@ -44,6 +44,14 @@ const (
 	OR  = "||"
 	AND = "&&"
 
+	// Bitwise operators
+	BITWISE_OR  = "|"
+	BITWISE_AND = "&"
+	BITWISE_XOR = "^"
+	BITWISE_NOT = "~"
+	LEFT_SHIFT  = "<<"
+	RIGHT_SHIFT = ">>"
+
 	// Delimiters
 	DOT       = "."
 	COMMA     = ","

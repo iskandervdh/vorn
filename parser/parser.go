@@ -36,11 +36,15 @@ const (
 	LOWEST
 	OR           // ||
 	AND          // &&
+	BITWISE_OR   // |
+	BITWISE_XOR  // ^
+	BITWISE_AND  // &
 	EQUALS       // == or !=
 	LESS_GREATER // >, <, >= or <=
+	SHIFT        // << or >>
 	SUM          // + or -
 	PRODUCT      // * or /
-	PREFIX       // -x or !x
+	PREFIX       // -x, !x or ~x
 	POSTFIX      // object.property, object.method(args), function(X), array[index]
 )
 
@@ -48,22 +52,27 @@ const (
 Precedence levels for the tokens based on their operator type
 */
 var precedences = map[token.TokenType]int{
-	token.OR:       OR,
-	token.AND:      AND,
-	token.EQ:       EQUALS,
-	token.NOT_EQ:   EQUALS,
-	token.LT:       LESS_GREATER,
-	token.GT:       LESS_GREATER,
-	token.LTE:      LESS_GREATER,
-	token.GTE:      LESS_GREATER,
-	token.PLUS:     SUM,
-	token.MINUS:    SUM,
-	token.ASTERISK: PRODUCT,
-	token.SLASH:    PRODUCT,
-	token.PERCENT:  PRODUCT,
-	token.DOT:      POSTFIX,
-	token.LPAREN:   POSTFIX,
-	token.LBRACKET: POSTFIX,
+	token.OR:          OR,
+	token.AND:         AND,
+	token.BITWISE_OR:  BITWISE_OR,
+	token.BITWISE_XOR: BITWISE_XOR,
+	token.BITWISE_AND: BITWISE_AND,
+	token.EQ:          EQUALS,
+	token.NOT_EQ:      EQUALS,
+	token.LT:          LESS_GREATER,
+	token.GT:          LESS_GREATER,
+	token.LTE:         LESS_GREATER,
+	token.GTE:         LESS_GREATER,
+	token.LEFT_SHIFT:  SHIFT,
+	token.RIGHT_SHIFT: SHIFT,
+	token.PLUS:        SUM,
+	token.MINUS:       SUM,
+	token.ASTERISK:    PRODUCT,
+	token.SLASH:       PRODUCT,
+	token.PERCENT:     PRODUCT,
+	token.DOT:         POSTFIX,
+	token.LPAREN:      POSTFIX,
+	token.LBRACKET:    POSTFIX,
 }
 
 /*
@@ -102,8 +111,9 @@ func (p *Parser) registerPrefixFunctions() {
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.NULL, p.parseNull)
 	p.registerPrefix(token.FLOAT, p.parseFloatLiteral)
-	p.registerPrefix(token.EXCLAMATION, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
+	p.registerPrefix(token.EXCLAMATION, p.parsePrefixExpression)
+	p.registerPrefix(token.BITWISE_NOT, p.parsePrefixExpression)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.BREAK, p.parseBreakExpression)
@@ -125,6 +135,11 @@ func (p *Parser) registerInfixFunctions() {
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
 	p.registerInfix(token.SLASH, p.parseInfixExpression)
 	p.registerInfix(token.PERCENT, p.parseInfixExpression)
+	p.registerInfix(token.BITWISE_OR, p.parseInfixExpression)
+	p.registerInfix(token.BITWISE_XOR, p.parseInfixExpression)
+	p.registerInfix(token.BITWISE_AND, p.parseInfixExpression)
+	p.registerInfix(token.LEFT_SHIFT, p.parseInfixExpression)
+	p.registerInfix(token.RIGHT_SHIFT, p.parseInfixExpression)
 	p.registerInfix(token.EQ, p.parseInfixExpression)
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)

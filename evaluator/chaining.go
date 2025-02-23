@@ -171,10 +171,10 @@ func (e *Evaluator) arrayMap(arr *object.Array, args ...object.Object) object.Ob
 	}
 
 	for i, el := range arr.Elements {
-		arguments := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
+		args := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
 
 		// Handle functions that require only a certain amount of arguments
-		value := e.applyFunction(callExpression, f, arguments[:callbackArgumentsCount])
+		value := e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		// If the value is an error, return the error
 		if _, ok := value.(*object.Error); ok {
@@ -223,10 +223,10 @@ func (e *Evaluator) arrayFilter(arr *object.Array, args ...object.Object) object
 	}
 
 	for i, el := range arr.Elements {
-		arguments := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
+		args := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
 
 		// Handle functions that require only a certain amount of arguments
-		value := e.applyFunction(callExpression, f, arguments[:callbackArgumentsCount])
+		value := e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		if _, ok := value.(*object.Error); ok {
 			return value
@@ -278,10 +278,10 @@ func (e *Evaluator) arrayReduce(arr *object.Array, args ...object.Object) object
 	}
 
 	for i, el := range arr.Elements {
-		arguments := []object.Object{accumulator, el, object.NewInteger(arr.Node(), int64(i)), arr}
+		args := []object.Object{accumulator, el, object.NewInteger(arr.Node(), int64(i)), arr}
 
 		// Handle functions that require only a certain amount of arguments
-		accumulator = e.applyFunction(callExpression, f, arguments[:callbackArgumentsCount])
+		accumulator = e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		// If the value is an error, return the error
 		if _, ok := accumulator.(*object.Error); ok {
@@ -355,10 +355,10 @@ func (e *Evaluator) arrayFind(arr *object.Array, args ...object.Object) object.O
 	}
 
 	for i, el := range arr.Elements {
-		arguments := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
+		args := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
 
 		// Handle functions that require only a certain amount of arguments
-		value := e.applyFunction(callExpression, f, arguments[:callbackArgumentsCount])
+		value := e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		// If the value is an error, return the error
 		if _, ok := value.(*object.Error); ok {
@@ -501,10 +501,10 @@ func (e *Evaluator) arraySort(arr *object.Array, args ...object.Object) object.O
 	copy(sorted, arr.Elements)
 
 	sort.Slice(arr.Elements, func(i, j int) bool {
-		arguments := []object.Object{arr.Elements[i], arr.Elements[j], object.NewInteger(arr.Node(), int64(i)), object.NewInteger(arr.Node(), int64(j)), arr}
+		args := []object.Object{arr.Elements[i], arr.Elements[j], object.NewInteger(arr.Node(), int64(i)), object.NewInteger(arr.Node(), int64(j)), arr}
 
 		// Handle functions that require only a certain amount of arguments
-		value := e.applyFunction(callExpression, f, arguments[:callbackArgumentsCount])
+		value := e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		// If the value is an error, return the error
 		if _, ok := value.(*object.Error); ok {
@@ -551,10 +551,10 @@ func (e *Evaluator) arrayAny(arr *object.Array, args ...object.Object) object.Ob
 	}
 
 	for i, el := range arr.Elements {
-		arguments := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
+		args := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
 
 		// Handle functions that require only a certain amount of arguments
-		value := e.applyFunction(callExpression, f, arguments[:callbackArgumentsCount])
+		value := e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		// If the value is an error, return the error
 		if _, ok := value.(*object.Error); ok {
@@ -606,10 +606,10 @@ func (e *Evaluator) arrayAll(arr *object.Array, args ...object.Object) object.Ob
 	}
 
 	for i, el := range arr.Elements {
-		arguments := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
+		args := []object.Object{el, object.NewInteger(arr.Node(), int64(i)), arr}
 
 		// Handle functions that require only a certain amount of arguments
-		value := e.applyFunction(callExpression, f, arguments[:callbackArgumentsCount])
+		value := e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		// If the value is an error, return the error
 		if _, ok := value.(*object.Error); ok {

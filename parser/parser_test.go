@@ -827,12 +827,12 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	if !ok {
 		t.Fatalf("statement.Expression is not ast.FunctionLiteral. got %T", statement.Expression)
 	}
-	if len(function.Parameters) != 2 {
-		t.Fatalf("function literal parameters wrong. want 2, got %d\n", len(function.Parameters))
+	if len(function.Arguments) != 2 {
+		t.Fatalf("function literal's arguments are wrong. want 2, got %d\n", len(function.Arguments))
 	}
 
-	checkLiteralExpression(t, function.Parameters[0], "x")
-	checkLiteralExpression(t, function.Parameters[1], "y")
+	checkLiteralExpression(t, function.Arguments[0], "x")
+	checkLiteralExpression(t, function.Arguments[1], "y")
 
 	if len(function.Body.Statements) != 1 {
 		t.Fatalf("function.Body.Statements has not 1 statements. got %d\n", len(function.Body.Statements))
@@ -847,14 +847,14 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	checkInfixExpression(t, bodyStatement.Expression, "x", "+", "y")
 }
 
-func TestFunctionParameterParsing(t *testing.T) {
+func TestFunctionArgumentParsing(t *testing.T) {
 	tests := []struct {
-		input          string
-		expectedParams []string
+		input             string
+		expectedArguments []string
 	}{
-		{input: "func() {};", expectedParams: []string{}},
-		{input: "func(x) {};", expectedParams: []string{"x"}},
-		{input: "func(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+		{input: "func() {};", expectedArguments: []string{}},
+		{input: "func(x) {};", expectedArguments: []string{"x"}},
+		{input: "func(x, y, z) {};", expectedArguments: []string{"x", "y", "z"}},
 	}
 
 	for _, test := range tests {
@@ -863,12 +863,12 @@ func TestFunctionParameterParsing(t *testing.T) {
 		statement := program.Statements[0].(*ast.ExpressionStatement)
 		function := statement.Expression.(*ast.FunctionLiteral)
 
-		if len(function.Parameters) != len(test.expectedParams) {
-			t.Errorf("length parameters wrong. want %d, got %d\n", len(test.expectedParams), len(function.Parameters))
+		if len(function.Arguments) != len(test.expectedArguments) {
+			t.Errorf("length of arguments is wrong. want %d, got %d\n", len(test.expectedArguments), len(function.Arguments))
 		}
 
-		for i, ident := range test.expectedParams {
-			checkLiteralExpression(t, function.Parameters[i], ident)
+		for i, ident := range test.expectedArguments {
+			checkLiteralExpression(t, function.Arguments[i], ident)
 		}
 	}
 }

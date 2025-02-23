@@ -148,23 +148,23 @@ type Function struct {
 	Env       *Environment
 }
 
-func NewFunction(node ast.Node, parameters []*ast.Identifier, body *ast.BlockStatement, env *Environment) *Function {
-	return &Function{node: node, Arguments: parameters, Body: body, Env: env}
+func NewFunction(node ast.Node, args []*ast.Identifier, body *ast.BlockStatement, env *Environment) *Function {
+	return &Function{node: node, Arguments: args, Body: body, Env: env}
 }
 
 func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
 func (f *Function) Inspect() string {
 	var out bytes.Buffer
 
-	params := []string{}
+	args := []string{}
 
 	for _, p := range f.Arguments {
-		params = append(params, p.String())
+		args = append(args, p.String())
 	}
 
 	out.WriteString("func")
 	out.WriteString("(")
-	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(strings.Join(args, ", "))
 	out.WriteString(") {\n")
 	out.WriteString(f.Body.String())
 	out.WriteString("\n}")

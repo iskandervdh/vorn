@@ -407,25 +407,24 @@ func TestLetStatements(t *testing.T) {
 func TestFunctionObject(t *testing.T) {
 	input := "func(x) { x + 2; };"
 	evaluated := testEval(input)
-	fn, ok := evaluated.(*object.Function)
+	function, ok := evaluated.(*object.Function)
 
 	if !ok {
 		t.Fatalf("object is not Function. got %T (%+v)", evaluated, evaluated)
 	}
 
-	if len(fn.Arguments) != 1 {
-		t.Fatalf("function has wrong parameters. Parameters=%+v",
-			fn.Arguments)
+	if len(function.Arguments) != 1 {
+		t.Fatalf("function has wrong arguments. Arguments=%+v", function.Arguments)
 	}
 
-	if fn.Arguments[0].String() != "x" {
-		t.Fatalf("parameter is not 'x'. got %q", fn.Arguments[0])
+	if function.Arguments[0].String() != "x" {
+		t.Fatalf("argument is not 'x'. got %q", function.Arguments[0])
 	}
 
 	expectedBody := "{\n  (x + 2)\n}"
 
-	if fn.Body.String() != expectedBody {
-		t.Fatalf("body is not %q. got %q", expectedBody, fn.Body.String())
+	if function.Body.String() != expectedBody {
+		t.Fatalf("body is not %q. got %q", expectedBody, function.Body.String())
 	}
 }
 

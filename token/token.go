@@ -11,6 +11,7 @@ type Token struct {
 }
 
 const (
+	// Special tokens
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 	COMMENT = "COMMENT"
@@ -29,6 +30,7 @@ const (
 	ASTERISK    = "*"
 	SLASH       = "/"
 
+	// Comparison operators
 	LT  = "<"
 	GT  = ">"
 	LTE = "<="
@@ -37,6 +39,7 @@ const (
 	EQ     = "=="
 	NOT_EQ = "!="
 
+	// Logical operators
 	OR  = "||"
 	AND = "&&"
 
@@ -69,6 +72,11 @@ const (
 	CONTINUE = "CONTINUE"
 )
 
+/*
+Keywords are stored in a map where the key is the keyword and the value is the TokenType.
+
+When we encounter a keyword in the source code, we can look it up in the map to determine its TokenType.
+*/
 var keywords = map[string]TokenType{
 	"func":     FUNCTION,
 	"const":    CONST,
@@ -85,10 +93,20 @@ var keywords = map[string]TokenType{
 	"continue": CONTINUE,
 }
 
+/*
+Create a new token with the given TokenType, character, line and column.
+
+Returns the new token.
+*/
 func New(tokenType TokenType, ch byte, line int, column int) Token {
 	return Token{Type: tokenType, Literal: string(ch), Line: line, Column: column}
 }
 
+/*
+Lookup the TokenType of a given identifier if it is a keyword.
+
+Returns the TokenType of the identifier. If the identifier is not a keyword, return IDENT.
+*/
 func LookupIdent(ident string) TokenType {
 	if tok, ok := keywords[ident]; ok {
 		return tok

@@ -481,8 +481,8 @@ func (e *Evaluator) evalExpressions(expressions []ast.Expression, env *object.En
 func (e *Evaluator) extendFunctionEnv(function *object.Function, args []object.Object) *object.Environment {
 	env := object.NewEnclosedEnvironment(function.Env)
 
-	for paramIdx, param := range function.Arguments {
-		env.Set(param.Value, args[paramIdx])
+	for i, argument := range function.Arguments {
+		env.Set(argument.Value, args[i])
 	}
 
 	return env
@@ -686,10 +686,10 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 			return object.NewError(node, "identifier already defined: %s", node.Name.Value)
 		}
 
-		params := node.Parameters
+		args := node.Arguments
 		body := node.Body
 
-		function := object.NewFunction(node, params, body, env)
+		function := object.NewFunction(node, args, body, env)
 
 		env.Set(node.Name.Value, function)
 
@@ -764,10 +764,10 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		return e.evalIdentifier(node, env)
 
 	case *ast.FunctionLiteral:
-		params := node.Parameters
+		args := node.Arguments
 		body := node.Body
 
-		return object.NewFunction(node, params, body, env)
+		return object.NewFunction(node, args, body, env)
 
 	case *ast.CallExpression:
 		function := e.Eval(node.Function, env)

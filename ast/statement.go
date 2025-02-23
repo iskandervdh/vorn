@@ -184,9 +184,9 @@ func (fs *ForStatement) GetScopeStatements() []Statement {
 }
 
 type FunctionStatement struct {
-	Token      token.Token // the 'func' token
-	Name       *Identifier
-	Parameters []*Identifier
+	Token     token.Token // the 'func' token
+	Name      *Identifier
+	Arguments []*Identifier
 
 	Body *BlockStatement
 }
@@ -196,17 +196,17 @@ func (fs *FunctionStatement) TokenLiteral() string { return fs.Token.Literal }
 func (fs *FunctionStatement) String() string {
 	var out bytes.Buffer
 
-	params := []string{}
+	args := []string{}
 
-	for _, p := range fs.Parameters {
-		params = append(params, p.String())
+	for _, p := range fs.Arguments {
+		args = append(args, p.String())
 	}
 
 	out.WriteString(fs.TokenLiteral())
 	out.WriteString(" ")
 	out.WriteString(fs.Name.String())
 	out.WriteString("(")
-	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(strings.Join(args, ", "))
 	out.WriteString(") ")
 
 	out.WriteString(fs.Body.String())

@@ -28,21 +28,27 @@ type Parser struct {
 	infixParseFunctions  map[token.TokenType]infixParseFunction
 }
 
+/*
+Precedence levels for the different operators
+*/
 const (
 	_ int = iota
 	LOWEST
 	OR           // ||
 	AND          // &&
-	EQUALS       // ==
-	LESS_GREATER // > or <
-	SUM          // +
-	PRODUCT      // *
-	PREFIX       // -X or !X
-	CHAIN        // object.property / object.method(args)
+	EQUALS       // == or !=
+	LESS_GREATER // >, <, >= or <=
+	SUM          // + or -
+	PRODUCT      // * or /
+	PREFIX       // -x or !x
+	CHAIN        // object.property or object.method(args)
 	CALL         // myFunction(X)
 	INDEX        // array[index]
 )
 
+/*
+Precedence levels for the tokens based on their operator type
+*/
 var precedences = map[token.TokenType]int{
 	token.OR:       OR,
 	token.AND:      AND,
@@ -61,6 +67,9 @@ var precedences = map[token.TokenType]int{
 	token.LBRACKET: INDEX,
 }
 
+/*
+Create a new parser with the given lexer and trace flag
+*/
 func New(l *lexer.Lexer, trace bool) *Parser {
 	p := &Parser{
 		l:      l,
@@ -72,6 +81,8 @@ func New(l *lexer.Lexer, trace bool) *Parser {
 	p.nextToken()
 	p.nextToken()
 
+	// Register the prefix and infix functions to be used
+	// to determine what to do when we encounter a prefix or infix token
 	p.prefixParseFunctions = make(map[token.TokenType]prefixParseFunction)
 	p.registerPrefixFunctions()
 
@@ -139,6 +150,9 @@ func PrintErrors(out io.Writer, errors []string) {
 	}
 }
 
+/*
+Get the precedence of the peek token
+*/
 func (p *Parser) peekPrecedence() int {
 	if p, ok := precedences[p.peekToken.Type]; ok {
 		return p
@@ -147,6 +161,9 @@ func (p *Parser) peekPrecedence() int {
 	return LOWEST
 }
 
+/*
+Get the precedence of the current token
+*/
 func (p *Parser) currentPrecedence() int {
 	if p, ok := precedences[p.currentToken.Type]; ok {
 		return p
@@ -155,6 +172,9 @@ func (p *Parser) currentPrecedence() int {
 	return LOWEST
 }
 
+/*
+Add an error to the parser
+*/
 func (p *Parser) addError(e string, peek bool) {
 	var t token.Token
 
@@ -169,35 +189,59 @@ func (p *Parser) addError(e string, peek bool) {
 	p.errors = append(p.errors, e)
 }
 
-func (p *Parser) peekError(t token.TokenType) {
+/*
+Add a peek error to the parser meaning the parser expected a certain token type but got another
+*/
+func (p *Parser) addPeekError(t token.TokenType) {
 	p.addError(fmt.Sprintf("expected '%s', got %s instead", t, p.peekToken.Type), true)
 }
 
+/*
+Move to the next token in the lexer by setting the current token to the peek token
+and the peek token to the next token in the lexer
+*/
 func (p *Parser) nextToken() {
 	p.currentToken = p.peekToken
 	p.peekToken = p.l.NextToken()
 }
 
+/*
+Check if the current token is of a certain type
+*/
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
 	return p.currentToken.Type == t
 }
 
+/*
+Check if the peek token is of a certain type
+*/
 func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
+/*
+Expect the next token to be of a certain type.
+
+If the next token is of the expected type, the parser will move to the next token and return true.
+If the next token is not of the expected type, the parser will add an error and return false.
+*/
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
 
 		return true
 	} else {
-		p.peekError(t)
+		p.addPeekError(t)
 
 		return false
 	}
 }
 
+/*
+Check if the current token is a reassignment of a constant.
+
+Add an error if it is
+*/
 func (p *Parser) checkConstReassignment(scope ast.Scope, newStatement ast.Statement) {
 	expressionStatement, ok := newStatement.(*ast.ExpressionStatement)
 
@@ -268,6 +312,13 @@ func (p *Parser) checkVariableRedefinition(statements []ast.Statement, newStatem
 	}
 }
 
+/*
+Parse the program by parsing all the statements in the program.
+
+Check for reassignments of constants and redefinitions of variables after each statement.
+
+Return the parsed program
+*/
 func (p *Parser) ParseProgram() *ast.Program {
 	program := ast.NewProgram()
 	p.scope = program
@@ -286,6 +337,9 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
+/*
+Parse a statement based on the current token type
+*/
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.currentToken.Type {
 	case token.LET:
@@ -305,6 +359,9 @@ func (p *Parser) parseStatement() ast.Statement {
 	}
 }
 
+/*
+Parse a named or anonymous function based on if the peek token is an identifier
+*/
 func (p *Parser) parseFunction() ast.Statement {
 	if p.peekTokenIs(token.IDENT) {
 		return p.parseFunctionStatement()
@@ -313,6 +370,9 @@ func (p *Parser) parseFunction() ast.Statement {
 	return p.parseExpressionStatement()
 }
 
+/*
+Parse a function statement, including the function name, arguments and body
+*/
 func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
 	statement := &ast.FunctionStatement{Token: p.currentToken}
 
@@ -326,7 +386,7 @@ func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
 		return nil
 	}
 
-	statement.Parameters = p.parseFunctionParameters()
+	statement.Arguments = p.parseFunctionArguments()
 
 	if !p.expectPeek(token.LBRACE) {
 		return nil
@@ -337,6 +397,9 @@ func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
 	return statement
 }
 
+/*
+Parse a variable statement, including the variable name and value
+*/
 func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 	if p.trace {
 		defer untrace(trace("VariableStatement"))
@@ -365,6 +428,9 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 	return statement
 }
 
+/*
+Parse a return statement, including the return value
+*/
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	statement := &ast.ReturnStatement{Token: p.currentToken}
 
@@ -379,6 +445,9 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return statement
 }
 
+/*
+Parse a while statement, including the condition and body
+*/
 func (p *Parser) parseWhileStatement() *ast.WhileStatement {
 	if p.trace {
 		defer untrace(trace("WhileStatement"))
@@ -406,6 +475,9 @@ func (p *Parser) parseWhileStatement() *ast.WhileStatement {
 	return whileStatement
 }
 
+/*
+Parse a for statement, including the initialization, condition, update and body
+*/
 func (p *Parser) parseForStatement() *ast.ForStatement {
 	if p.trace {
 		defer untrace(trace("ForStatement"))
@@ -463,6 +535,14 @@ func (p *Parser) parseForStatement() *ast.ForStatement {
 	return forStatement
 }
 
+/*
+Parse an expression based on the current token type
+
+The precedence is used to determine the order of operations.
+The parser will keep parsing expressions until it encounters a semicolon or the precedence of the next token is lower than the current precedence
+
+The parser will then return the parsed expression
+*/
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	if p.trace {
 		defer untrace(trace("Expression"))
@@ -471,7 +551,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFunctions[p.currentToken.Type]
 
 	if prefix == nil {
-		p.noPrefixParseFnError(p.currentToken.Type)
+		p.noPrefixParseFunctionError(p.currentToken.Type)
 
 		return nil
 	}
@@ -492,6 +572,9 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	return leftExp
 }
 
+/*
+Parse an expression statement, including the expression and a semicolon
+*/
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	if p.trace {
 		defer untrace(trace("ExpressionStatement"))
@@ -507,6 +590,9 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return statement
 }
 
+/*
+Parse a reassignment expression, including the name, value and a semicolon
+*/
 func (p *Parser) parseReassignmentExpression() ast.Expression {
 	if p.trace {
 		defer untrace(trace("ReassignmentExpression"))
@@ -533,6 +619,15 @@ func (p *Parser) parseReassignmentExpression() ast.Expression {
 	return statement
 }
 
+/*
+Parse an identifier expression based on the current token
+
+If the current token is an identifier, the parser will check if the next token is an assignment operator.
+If the next token is an assignment operator, the parser will parse a reassignment expression.
+If the next token is not an assignment operator, the parser will parse an identifier expression.
+
+The parser will then return the parsed expression
+*/
 func (p *Parser) parseIdentifier() ast.Expression {
 	identifier := &ast.Identifier{
 		Token: p.currentToken,
@@ -546,6 +641,9 @@ func (p *Parser) parseIdentifier() ast.Expression {
 	return identifier
 }
 
+/*
+Parse an integer literal expression based on the current token
+*/
 func (p *Parser) parseIntegerLiteral() ast.Expression {
 	if p.trace {
 		defer untrace(trace("IntegerLiteral"))
@@ -565,14 +663,23 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return literal
 }
 
+/*
+Parse a boolean expression based on the current token
+*/
 func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.BooleanLiteral{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
 }
 
+/*
+Parse a null expression based on the current token
+*/
 func (p *Parser) parseNull() ast.Expression {
 	return &ast.NullLiteral{Token: p.currentToken}
 }
 
+/*
+Parse a float literal expression based on the current token
+*/
 func (p *Parser) parseFloatLiteral() ast.Expression {
 	literal := &ast.FloatLiteral{Token: p.currentToken}
 	value, err := strconv.ParseFloat(p.currentToken.Literal, 64)
@@ -588,10 +695,16 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 	return literal
 }
 
-func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+/*
+Add an error to the parser if there is no prefix parse function for the current token
+*/
+func (p *Parser) noPrefixParseFunctionError(t token.TokenType) {
 	p.addError(fmt.Sprintf("unexpected token %s", t), false)
 }
 
+/*
+Parse a prefix expression, including the operator and right-hand side
+*/
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	if p.trace {
 		defer untrace(trace("PrefixExpression"))
@@ -608,6 +721,9 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	return expression
 }
 
+/*
+Parse an infix expression, including the left-hand side, operator and right-hand side
+*/
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	if p.trace {
 		defer untrace(trace("InfixExpression"))
@@ -626,6 +742,9 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return expression
 }
 
+/*
+Parse a call expression, including the function name and the call arguments
+*/
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	if p.trace {
 		defer untrace(trace("CallExpression"))
@@ -637,6 +756,9 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	return exp
 }
 
+/*
+Parse a grouped expression, including the expression inside the parentheses
+*/
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	p.nextToken()
 
@@ -649,6 +771,9 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	return expression
 }
 
+/*
+Parse an if expression, including the condition, consequence and alternative
+*/
 func (p *Parser) parseIfExpression() ast.Expression {
 	if p.trace {
 		defer untrace(trace("IfExpression"))
@@ -676,6 +801,8 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	if p.peekTokenIs(token.ELSE) {
 		p.nextToken()
 
+		// TODO: Add support for else if
+
 		if !p.expectPeek(token.LBRACE) {
 			return nil
 		}
@@ -686,14 +813,28 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	return expression
 }
 
+/*
+Parse a break expression
+*/
 func (p *Parser) parseBreakExpression() ast.Expression {
 	return &ast.BreakExpression{Token: p.currentToken}
 }
 
+/*
+Parse a continue expression
+*/
 func (p *Parser) parseContinueExpression() ast.Expression {
 	return &ast.ContinueExpression{Token: p.currentToken}
 }
 
+/*
+Parse a block statement, including all the statements inside the block.
+
+The parser will create a new scope for the block and restore the parent scope after parsing the block.
+It will also check for reassignments of constants and redefinitions of variables after each statement.
+
+The parser will then return the parsed block statement
+*/
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	if p.trace {
 		defer untrace(trace("BlockStatement"))
@@ -710,6 +851,7 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 
 	p.nextToken()
 
+	// Parse all the statements inside the block
 	for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
 		statement := p.parseStatement()
 
@@ -727,6 +869,9 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	return block
 }
 
+/*
+Parse a function literal, including the arguments and body
+*/
 func (p *Parser) parseFunctionLiteral() ast.Expression {
 	fl := &ast.FunctionLiteral{Token: p.currentToken}
 
@@ -734,7 +879,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 		return nil
 	}
 
-	fl.Parameters = p.parseFunctionParameters()
+	fl.Arguments = p.parseFunctionArguments()
 
 	if !p.expectPeek(token.LBRACE) {
 		return nil
@@ -745,7 +890,10 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	return fl
 }
 
-func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+/*
+Parse a the arguments of a function until a right parenthesis is encountered
+*/
+func (p *Parser) parseFunctionArguments() []*ast.Identifier {
 	identifiers := []*ast.Identifier{}
 
 	if p.peekTokenIs(token.RPAREN) {
@@ -773,6 +921,9 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	return identifiers
 }
 
+/*
+Parse a string literal
+*/
 func (p *Parser) parseStringLiteral() ast.Expression {
 	if p.trace {
 		defer untrace(trace("StringLiteral"))
@@ -781,6 +932,9 @@ func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
+/*
+Parse an array literal, including all the elements inside the array
+*/
 func (p *Parser) parseArrayLiteral() ast.Expression {
 	array := &ast.ArrayLiteral{Token: p.currentToken}
 	array.Elements = p.parseExpressionList(token.RBRACKET)
@@ -788,6 +942,9 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	return array
 }
 
+/*
+Parse a expression list until a certain token type is encountered
+*/
 func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	list := []ast.Expression{}
 
@@ -812,6 +969,9 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	return list
 }
 
+/*
+Parse an index expression, including the left-hand side and the index
+*/
 func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	expression := &ast.IndexExpression{Token: p.currentToken, Left: left}
 
@@ -825,6 +985,11 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	return expression
 }
 
+/*
+Parse a chaining expression, including the left-hand side and the right-hand side
+
+The parser will continue parsing chained expressions if there are any
+*/
 func (p *Parser) parseChainingExpression(left ast.Expression) ast.Expression {
 	if p.trace {
 		defer untrace(trace("ChainingExpression"))
@@ -856,6 +1021,9 @@ func (p *Parser) parseChainingExpression(left ast.Expression) ast.Expression {
 	return expression
 }
 
+/*
+Parse a object literal, including all the key-value pairs inside the object
+*/
 func (p *Parser) parseHashLiteral() ast.Expression {
 	hash := &ast.HashLiteral{
 		Token: p.currentToken,
@@ -888,6 +1056,9 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 	return hash
 }
 
+/*
+Parse a reassignment literal to get the new value of a variable
+*/
 func (p *Parser) parseReassignLiteral() ast.Expression {
 	p.nextToken()
 

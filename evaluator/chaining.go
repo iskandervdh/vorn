@@ -741,7 +741,13 @@ func (e *Evaluator) stringRepeat(str *object.String, args ...object.Object) obje
 		return object.NewError(str.Node(), "argument to `repeat` must be INTEGER, got %s", args[0].Type())
 	}
 
-	return object.NewString(str.Node(), strings.Repeat(str.Value, int(args[0].(*object.Integer).Value)))
+	intValue := int(args[0].(*object.Integer).Value)
+
+	if intValue < 0 {
+		return object.NewString(str.Node(), "")
+	}
+
+	return object.NewString(str.Node(), strings.Repeat(str.Value, intValue))
 }
 
 func (e *Evaluator) stringReverse(str *object.String, args ...object.Object) object.Object {
@@ -759,23 +765,31 @@ func (e *Evaluator) stringReverse(str *object.String, args ...object.Object) obj
 }
 
 func (e *Evaluator) stringSlice(str *object.String, args ...object.Object) object.Object {
-	if len(args) != 2 {
-		return object.NewError(str.Node(), "String.slice() takes exactly 2 arguments")
+	if len(args) == 0 || len(args) > 2 {
+		return object.NewError(str.Node(), "String.slice() takes 1 or 2 arguments")
 	}
 
 	if args[0].Type() != object.INTEGER_OBJ {
 		return object.NewError(str.Node(), "first argument to `slice` must be INTEGER, got %s", args[0].Type())
 	}
 
-	if args[1].Type() != object.INTEGER_OBJ {
-		return object.NewError(str.Node(), "second argument to `slice` must be INTEGER, got %s", args[1].Type())
-	}
-
 	start := int(args[0].(*object.Integer).Value)
-	end := int(args[1].(*object.Integer).Value)
+	end := len(str.Value)
+
+	if len(args) == 2 {
+		if args[1].Type() != object.INTEGER_OBJ {
+			return object.NewError(str.Node(), "second argument to `slice` must be INTEGER, got %s", args[1].Type())
+		}
+
+		end = int(args[1].(*object.Integer).Value)
+	}
 
 	if start < 0 || start > len(str.Value) {
 		return object.NewError(str.Node(), "first argument to `slice` out of range")
+	}
+
+	if end < 0 {
+		end = len(str.Value) + end
 	}
 
 	if end < 0 || end > len(str.Value) {

@@ -1,7 +1,6 @@
 package evaluator
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/iskandervdh/vorn/object"
@@ -19,8 +18,10 @@ func checkChainingExpression(t *testing.T, input string, expected interface{}) {
 		testErrorObject(t, evaluated, expected.(string))
 	case object.ARRAY_OBJ:
 		testArrayObject(t, evaluated, expected.([]string))
+	case object.BOOLEAN_OBJ:
+		testBooleanObject(t, evaluated, expected.(bool))
 	default:
-		t.Errorf("Expected STRING_OBJ or INTEGER_OBJ, got %s", evaluated.Type())
+		t.Errorf("Expected STRING_OBJ, INTEGER_OBJ, ERROR_OBJ, ARRAY_OBJ or BOOLEAN_OBJ, got %s", evaluated.Type())
 	}
 }
 
@@ -43,6 +44,34 @@ func TestStringChainingExpression(t *testing.T) {
 		{`"hello world".split("")`, []string{"h", "e", "l", "l", "o", " ", "w", "o", "r", "l", "d"}},
 		{`"hello world".split("o")`, []string{"hell", " w", "rld"}},
 		{`"hello world".split()`, []string{"hello", "world"}},
+		{`"hello world".contains("world")`, true},
+		{`"hello world".contains("worlds")`, false},
+		{`"hello world".replace("world", "you")`, "hello you"},
+		{`"hello world".replace("world", "you").replace("you", "world")`, "hello world"},
+		{`"hello  ".trim()`, "hello"},
+		{`"  hello".trim()`, "hello"},
+		{`"  hello	".trim()`, "hello"},
+		{`"hello".trim()`, "hello"},
+		{`"  hello".trimStart()`, "hello"},
+		{`"  hello	".trimStart()`, "hello	"},
+		{`"hello".trimStart()`, "hello"},
+		{`"hello  ".trimEnd()`, "hello"},
+		{`"hello	".trimEnd()`, "hello"},
+		{`"hello".trimEnd()`, "hello"},
+		{`"hello".repeat(3)`, "hellohellohello"},
+		{`"hello".repeat(0)`, ""},
+		{`"hello".repeat(-1)`, ""},
+		{`"hello".repeat(1)`, "hello"},
+		{`"hello".reverse()`, "olleh"},
+		{`"hello".reverse().reverse()`, "hello"},
+		{`"hello".slice(1)`, "ello"},
+		{`"hello".slice(1, 3)`, "el"},
+		{`"hello".slice(1, 1)`, ""},
+		{`"hello".slice(1, -1)`, "ell"},
+		{`"hello".startsWith("he")`, true},
+		{`"hello".startsWith("lo")`, false},
+		{`"hello".endsWith("lo")`, true},
+		{`"hello".endsWith("he")`, false},
 
 		// Errors
 		{`"hello".length(1)`, "[1:2] String.length() takes no arguments"},
@@ -51,6 +80,27 @@ func TestStringChainingExpression(t *testing.T) {
 		{`"hello".append(1)`, "[1:10] String has no method append"},
 		{`"hello".split(1)`, "[1:2] argument to `split` must be STRING, got INTEGER"},
 		{`"hello".split("e", "l")`, "[1:2] String.split() takes at most 1 argument, got 2"},
+		{`"hello world".contains("world", 6)`, "[1:2] String.contains() takes exactly 1 argument"},
+		{`"hello world".contains(6)`, "[1:2] argument to `contains` must be STRING, got INTEGER"},
+		{`"hello world".replace("world", "you", "me")`, "[1:2] String.replace() takes exactly 2 arguments"},
+		{`"hello world".replace(1, 2)`, "[1:2] first argument to `replace` must be STRING, got INTEGER"},
+		{`"hello world".replace("world", 2)`, "[1:2] second argument to `replace` must be STRING, got INTEGER"},
+		{`"hello".trim(1)`, "[1:2] String.trim() takes no arguments"},
+		{`"hello".trimStart(1)`, "[1:2] String.trimStart() takes no arguments"},
+		{`"hello".trimEnd(1)`, "[1:2] String.trimEnd() takes no arguments"},
+		{`"hello".repeat()`, "[1:2] String.repeat() takes exactly 1 argument"},
+		{`"hello".repeat("1")`, "[1:2] argument to `repeat` must be INTEGER, got STRING"},
+		{`"hello".reverse(1)`, "[1:2] String.reverse() takes no arguments"},
+		{`"hello".slice()`, "[1:2] String.slice() takes 1 or 2 arguments"},
+		{`"hello".slice(1, 2, 3)`, "[1:2] String.slice() takes 1 or 2 arguments"},
+		{`"hello".slice("1", 2)`, "[1:2] first argument to `slice` must be INTEGER, got STRING"},
+		{`"hello".slice(1, "2")`, "[1:2] second argument to `slice` must be INTEGER, got STRING"},
+		{`"hello".slice(10, 10)`, "[1:2] first argument to `slice` out of range"},
+		{`"hello".slice(0, 10)`, "[1:2] second argument to `slice` out of range"},
+		{`"hello".startsWith(1)`, "[1:2] argument to `startsWith` must be STRING, got INTEGER"},
+		{`"hello".startsWith("1", 2)`, "[1:2] String.startsWith() takes exactly 1 argument"},
+		{`"hello".endsWith(1)`, "[1:2] argument to `endsWith` must be STRING, got INTEGER"},
+		{`"hello".endsWith("1", 2)`, "[1:2] String.endsWith() takes exactly 1 argument"},
 	}
 
 	for _, test := range tests {
@@ -111,13 +161,15 @@ func TestObjectChainingExpression(t *testing.T) {
 		expected interface{}
 	}{
 		{`{"a": 1, "b": 2}.keys()`, []string{"a", "b"}},
+		{`{"a": 1, "b": 2}.keys(1)`, "[1:2] Object.keys() takes no arguments"},
 		{`{"a": 1, "b": 2}.values()`, []string{"1", "2"}},
+		{`{"a": 1, "b": 2}.values(1)`, "[1:2] Object.values() takes no arguments"},
 		{`{"a": 1, "b": 2}.items()`, []string{"a:1", "b:2"}},
+		{`{"a": 1, "b": 2}.items(1)`, "[1:2] Object.items() takes no arguments"},
 		{`{}.upper()`, "[1:5] Object has no method upper"},
 	}
 
 	for _, test := range tests {
-		fmt.Println(test.input)
 		checkChainingExpression(t, test.input, test.expected)
 	}
 }

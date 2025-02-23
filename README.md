@@ -16,8 +16,8 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 * If statements
 * For and While loops
 * Functions
-* Function chaining
-* Built-in functions (See [evaluator.go](evaluator/evaluator.go#L23) for a complete list)
+* Built-in functions (See [evaluator.go](evaluator/evaluator.go#L54) for a complete list)
+* Function chaining (See [evaluator.go](evaluator/evaluator.go#L87))
 * A REPL
 
 ## Planned features

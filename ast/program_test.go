@@ -16,6 +16,10 @@ func TestEmptyProgram(t *testing.T) {
 	if len(program.Statements) != 0 {
 		t.Fatalf("program.Statements has wrong length. got %d", len(program.Statements))
 	}
+
+	if program.String() != "" {
+		t.Fatal("Empty program should bee printed as empty string")
+	}
 }
 
 func TestSimpleProgram(t *testing.T) {
@@ -50,6 +54,10 @@ func TestSimpleProgram(t *testing.T) {
 
 	if program.TokenLiteral() != "let" {
 		t.Fatalf("program.TokenLiteral() wrong. got '%s'", program.TokenLiteral())
+	}
+
+	if program.String() != "let x = ;const y = ;" {
+		t.Fatalf("program.String() wrong, got '%s'", program.String())
 	}
 
 	if !program.Statements[0].(*VariableStatement).IsLet() {

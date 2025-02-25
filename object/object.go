@@ -165,9 +165,9 @@ func (f *Function) Inspect() string {
 	out.WriteString("func")
 	out.WriteString("(")
 	out.WriteString(strings.Join(args, ", "))
-	out.WriteString(") {\n")
+	out.WriteString(") ")
 	out.WriteString(f.Body.String())
-	out.WriteString("\n}")
+	out.WriteString("\n")
 
 	return out.String()
 }
@@ -194,8 +194,8 @@ type Builtin struct {
 	ArgumentsCount int
 }
 
-func NewBuiltin(node ast.Node, fn BuiltinFunction) *Builtin {
-	return &Builtin{node: node, Function: fn}
+func NewBuiltin(node ast.Node, function BuiltinFunction) *Builtin {
+	return &Builtin{node: node, Function: function}
 }
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
@@ -308,7 +308,7 @@ func Clone(node ast.Node, object Object) Object {
 	case CONTINUE_OBJ:
 		return NewContinue(node)
 	case ERROR_OBJ:
-		return &Error{node: node, Message: object.(*String).Value}
+		return &Error{node: node, Message: object.(*Error).Message}
 	case FUNCTION_OBJ:
 		return NewFunction(node, object.(*Function).Arguments, object.(*Function).Body, object.(*Function).Env)
 	case STRING_OBJ:

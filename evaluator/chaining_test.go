@@ -20,8 +20,12 @@ func checkChainingExpression(t *testing.T, input string, expected interface{}) {
 		testArrayObject(t, evaluated, expected.([]string))
 	case object.BOOLEAN_OBJ:
 		testBooleanObject(t, evaluated, expected.(bool))
+	case object.NULL_OBJ:
+		if expected != "null" {
+			t.Errorf("Expected %s, got NULL", expected)
+		}
 	default:
-		t.Errorf("Expected STRING_OBJ, INTEGER_OBJ, ERROR_OBJ, ARRAY_OBJ or BOOLEAN_OBJ, got %s", evaluated.Type())
+		t.Errorf("Expected STRING_OBJ, INTEGER_OBJ, ERROR_OBJ, ARRAY_OBJ, BOOLEAN_OBJ or NULL_OBJ, got %s", evaluated.Type())
 	}
 }
 
@@ -116,9 +120,15 @@ func TestArrayChainingExpression(t *testing.T) {
 		{`[1,2,3].length()`, 3},
 		{`[1,2,3].append(4).length()`, 4},
 		{`let a = [1,2,3]; a.append(4); a.length()`, 4},
+		{`[1,2,3].prepend(0).length()`, 4},
+		{`let a = [1,2,3]; a.prepend(0); a.length()`, 4},
+		{`[1,2,3].shift()`, 1},
+		{`let a = [1,2,3]; a.shift(); a.shift(); a`, []string{"3"}},
 		{`[1,2,3].pop()`, 3},
 		{`let a = [1,2,3]; a.pop(); a.pop(); a`, []string{"1"}},
 		{`let a = [1,2,3]; a.pop(1)`, 2},
+		{`[1,2,3].concat([4,5,6])`, []string{"1", "2", "3", "4", "5", "6"}},
+		{`[1,2,3].concat([4,5,6], [7,8,9])`, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}},
 		{`func timesTwo(x) { x * 2 }; [1, 2, 3, 4].map(timesTwo)`, []string{"2", "4", "6", "8"}},
 		{`[1, 2, 3, 4].map(sqrt)`, []string{"1", "1.4142135623730951", "1.7320508075688772", "2"}},
 		{`[1, 2, 3, 4].map(func(x, i) { return x + i; })`, []string{"1", "3", "5", "7"}},
@@ -126,28 +136,51 @@ func TestArrayChainingExpression(t *testing.T) {
 		{`[1, 2, 3, 4].filter(func(x) { return 10; })`, []string{"1", "2", "3", "4"}},
 		{`[1, 2, 3, 4].reduce(func(x, y) { return x + y; }, 0)`, 10},
 		{`[1, 2, 3, 4].reduce(func(x, y, i) { return x + y + i; }, 0)`, 16},
+		{`[1, 2, 3, 4].contains(2)`, true},
+		{`[1, 2, 3, 4].contains(5)`, false},
+		{`[1, 2, 3, 4].indexOf(2)`, 1},
+		{`[1, 2, 3, 4].indexOf(5)`, -1},
+		{`[1, 2, 3, 4].find(func(x) { return x > 2; })`, 3},
+		{`[1, 2, 3, 4].find(func(x) { return x > 5; })`, "null"},
 
 		// Errors
+		{`[1,2,3].vorn`, "[1:10] chaining operator not supported: ARRAY.vorn"},
+		{`[1,2,3].upper()`, "[1:10] Array has no method upper"},
+
 		{`[1,2,3].length(1)`, "[1:2] Array.length() takes no arguments"},
 		{`[1,2,3].append()`, "[1:2] Array.append() takes exactly 1 argument"},
-		{`[1,2,3].upper()`, "[1:10] Array has no method upper"},
+		{`[1,2,3].prepend()`, "[1:2] Array.prepend() takes exactly 1 argument"},
+		{`[].shift()`, "[1:2] Array.shift() called on empty array"},
+		{`[1,2,3].shift("1")`, "[1:2] Array.shift() takes no arguments"},
 		{`[].pop()`, "[1:2] Array.pop() called on empty array"},
 		{`[1,2,3].pop(1,2)`, "[1:2] Array.pop() 0 or 1 argument"},
 		{`[1,2,3].pop("1")`, "[1:2] Array.pop() argument must be an integer"},
 		{`[1,2,3].pop(3)`, "[1:2] Array.pop() index out of range"},
-		{`[1,2,3].vorn`, "[1:10] chaining operator not supported: ARRAY.vorn"},
+		{`[1,2,3].concat()`, "[1:2] Array.concat() takes at least 1 argument"},
+		{`[1,2,3].concat(1)`, "[1:2] argument to `concat` must be ARRAY, got INTEGER"},
+
 		{`[1,2,3].map()`, "[1:2] Array.map() takes exactly 1 argument"},
 		{`[1, 2, 3, 4].map(2)`, "[1:19] Array.map() callback must be a function, got INTEGER"},
 		{`[1, 2, 3, 4].map(sqrt, sqrt)`, "[1:2] Array.map() takes exactly 1 argument"},
 		{`[1, 2, 3, 4].map()`, "[1:2] Array.map() takes exactly 1 argument"},
 		{`[1, 2, 3, 4].map(func() { return true; })`, "[1:19] Array.map() callback must take at least 1 argument"},
+		{`[1, 2, 3, 4].map(func(x) { if (x == 2) { return x + ""; } return x; })`, "[1:52] type mismatch: INTEGER + STRING"},
+
 		{`[1, 2, 3, 4].filter(2)`, "[1:22] Array.filter() callback must be a function, got INTEGER"},
 		{`[1, 2, 3, 4].filter(func() { return true; })`, "[1:22] Array.filter() callback must take at least 1 argument"},
 		{`[1, 2, 3, 4].filter(func(x) { return x > 2; }, func(x) { return x < 2; })`, "[1:2] Array.filter() takes exactly 1 argument"},
 		{`[1, 2, 3, 4].filter()`, "[1:2] Array.filter() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].filter(func(x) { if (x == 2) { return x + ""; } return x > 1; })`, "[1:55] type mismatch: INTEGER + STRING"},
+
 		{`[1, 2, 3, 4].reduce(2, 0)`, "[1:22] Array.reduce() callback must be a function, got INTEGER"},
 		{`[1, 2, 3, 4].reduce(func(x, y) { return x + y; }, 0, 0)`, "[1:2] Array.reduce() takes exactly 2 arguments, got 3"},
 		{`[1, 2, 3, 4].reduce(func (x) { return x; }, 0)`, "[1:22] Array.reduce() callback must take at least 2 arguments"},
+		{`[1, 2, 3, 4].reduce(func(x, y) { if (y == 2) { return x + y + ""; } return x + y; }, 0)`, "[1:62] type mismatch: INTEGER + STRING"},
+
+		{`[1, 2, 3, 4].contains()`, "[1:2] Array.contains() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].contains(2, 3)`, "[1:2] Array.contains() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].indexOf()`, "[1:2] Array.indexOf() takes exactly 1 argument"},
+		{`[1, 2, 3, 4].indexOf(2, 3)`, "[1:2] Array.indexOf() takes exactly 1 argument"},
 	}
 
 	for _, test := range tests {

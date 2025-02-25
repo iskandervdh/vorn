@@ -160,7 +160,8 @@ func (l *Lexer) NextToken() token.Token {
 		// If we're done with the for loop parentheses, return a semicolon token
 		if l.forLoopParentheses == 0 {
 			l.forLoopParentheses = -1
-			return token.New(token.SEMICOLON, l.char, l.line, l.column)
+
+			return token.New(token.SEMICOLON, ';', l.line, l.column)
 		}
 
 		t = token.New(token.RPAREN, l.char, l.line, l.column)

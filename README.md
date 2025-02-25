@@ -1,5 +1,10 @@
 <p align="center"><img src="./assets/vorn.svg" width="128" height="128"></p>
 
+<p align="center">
+<img src="https://github.com/iskandervdh/vorn/actions/workflows/test.yml/badge.svg?branch=main">
+<img src="https://raw.githubusercontent.com/iskandervdh/vorn/badges/.badges/main/coverage.svg">
+</p>
+
 # vorn
 
 vorn is a simple interpreted C-like scripting language that I'm making to learn more about language design and implementation.

@@ -185,9 +185,9 @@ func (l *Lexer) NextToken() token.Token {
 				Line:    l.line,
 				Column:  l.column,
 			}
+		} else {
+			t = token.New(token.BITWISE_OR, l.char, l.line, l.column)
 		}
-
-		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
 	case '&':
 		if l.peekChar() == '&' {
 			char := l.char
@@ -200,9 +200,9 @@ func (l *Lexer) NextToken() token.Token {
 				Line:    l.line,
 				Column:  l.column,
 			}
+		} else {
+			t = token.New(token.BITWISE_AND, l.char, l.line, l.column)
 		}
-
-		t = token.New(token.BITWISE_AND, l.char, l.line, l.column)
 	case '^':
 		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
 	case '~':

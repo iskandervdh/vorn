@@ -576,7 +576,7 @@ func TestObjectClone(t *testing.T) {
 						Literal: "a",
 					},
 					Value: "a",
-				}, "a").HashKey(): HashPair{
+				}, "a").HashKey(): {
 					Key: NewString(&ast.StringLiteral{
 						Token: token.Token{
 							Type:    token.STRING,
@@ -601,7 +601,7 @@ func TestObjectClone(t *testing.T) {
 							Literal: "b",
 						},
 						Value: "b",
-					}, "b").HashKey(): HashPair{
+					}, "b").HashKey(): {
 						Key: NewString(&ast.StringLiteral{
 							Token: token.Token{
 								Type:    token.STRING,
@@ -713,7 +713,7 @@ func TestNewFunctions(t *testing.T) {
 			NewInteger(&ast.IntegerLiteral{Value: 2}, 2),
 		}), "[1, 2]"},
 		{HASH_OBJ, NewHash(&ast.HashLiteral{}, map[HashKey]HashPair{
-			NewString(&ast.StringLiteral{Value: "a"}, "a").HashKey(): HashPair{
+			NewString(&ast.StringLiteral{Value: "a"}, "a").HashKey(): {
 				Key:   NewString(&ast.StringLiteral{Value: "a"}, "a"),
 				Value: NewInteger(&ast.IntegerLiteral{Value: 1}, 1),
 			},

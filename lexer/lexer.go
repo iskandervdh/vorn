@@ -160,7 +160,8 @@ func (l *Lexer) NextToken() token.Token {
 		// If we're done with the for loop parentheses, return a semicolon token
 		if l.forLoopParentheses == 0 {
 			l.forLoopParentheses = -1
-			return token.New(token.SEMICOLON, l.char, l.line, l.column)
+
+			return token.New(token.SEMICOLON, ';', l.line, l.column)
 		}
 
 		t = token.New(token.RPAREN, l.char, l.line, l.column)
@@ -185,9 +186,9 @@ func (l *Lexer) NextToken() token.Token {
 				Line:    l.line,
 				Column:  l.column,
 			}
+		} else {
+			t = token.New(token.BITWISE_OR, l.char, l.line, l.column)
 		}
-
-		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
 	case '&':
 		if l.peekChar() == '&' {
 			char := l.char
@@ -200,9 +201,9 @@ func (l *Lexer) NextToken() token.Token {
 				Line:    l.line,
 				Column:  l.column,
 			}
+		} else {
+			t = token.New(token.BITWISE_AND, l.char, l.line, l.column)
 		}
-
-		t = token.New(token.BITWISE_AND, l.char, l.line, l.column)
 	case '^':
 		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
 	case '~':

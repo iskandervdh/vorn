@@ -119,7 +119,7 @@ func New() *Evaluator {
 		"slice":    e.arraySlice,
 		"sort":     e.arraySort,
 		"any":      e.arrayAny,
-		"every":    e.arrayAll,
+		"every":    e.arrayEvery,
 	}
 
 	e.objectChainingFunctions = map[string]ObjectChainingFunction{
@@ -395,14 +395,19 @@ func (e *Evaluator) evalNumberInfixExpression(node *ast.InfixExpression, left ob
 }
 
 func (e *Evaluator) evalStringInfixExpression(node *ast.InfixExpression, left, right object.Object) object.Object {
-	if node.Operator != "+" {
-		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
-	}
-
 	leftVal := left.(*object.String).Value
 	rightVal := right.(*object.String).Value
 
-	return object.NewString(node, leftVal+rightVal)
+	switch node.Operator {
+	case token.PLUS:
+		return object.NewString(node, leftVal+rightVal)
+	case token.EQ:
+		return e.nativeBoolToBooleanObject(leftVal == rightVal)
+	case token.NOT_EQ:
+		return e.nativeBoolToBooleanObject(leftVal != rightVal)
+	default:
+		return object.NewError(node, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+	}
 }
 
 func (e *Evaluator) evalInfixExpression(node *ast.InfixExpression, left, right object.Object) object.Object {

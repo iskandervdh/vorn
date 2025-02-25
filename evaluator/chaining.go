@@ -126,7 +126,7 @@ func (e *Evaluator) arrayConcat(arr *object.Array, args ...object.Object) object
 
 	for _, arg := range args {
 		if arg.Type() != object.ARRAY_OBJ {
-			return object.NewError(arr.Node(), "argument to `concat` must be ARRAY, got %s", arg.Type())
+			return object.NewError(arr.Node(), "argument to `Array.concat()` must be ARRAY, got %s", arg.Type())
 		}
 
 		concatenated = append(concatenated, arg.(*object.Array).Elements...)
@@ -381,11 +381,11 @@ func (e *Evaluator) arrayJoin(arr *object.Array, args ...object.Object) object.O
 		return object.NewError(arr.Node(), "Array.join() takes at most 1 argument, got %d", len(args))
 	}
 
-	separator := ", "
+	separator := ","
 
 	if len(args) == 1 {
 		if args[0].Type() != object.STRING_OBJ {
-			return object.NewError(arr.Node(), "argument to `join` must be STRING, got %s", args[0].Type())
+			return object.NewError(arr.Node(), "argument to `Array.join()` must be STRING, got %s", args[0].Type())
 		}
 
 		separator = args[0].(*object.String).Value
@@ -422,7 +422,7 @@ func (e *Evaluator) arraySlice(arr *object.Array, args ...object.Object) object.
 	}
 
 	if args[0].Type() != object.INTEGER_OBJ {
-		return object.NewError(arr.Node(), "first argument to `slice` must be INTEGER, got %s", args[0].Type())
+		return object.NewError(arr.Node(), "first argument to `Array.slice()` must be INTEGER, got %s", args[0].Type())
 	}
 
 	start := int(args[0].(*object.Integer).Value)
@@ -430,18 +430,22 @@ func (e *Evaluator) arraySlice(arr *object.Array, args ...object.Object) object.
 
 	if len(args) == 2 {
 		if args[1].Type() != object.INTEGER_OBJ {
-			return object.NewError(arr.Node(), "second argument to `slice` must be INTEGER, got %s", args[1].Type())
+			return object.NewError(arr.Node(), "second argument to `Array.slice()` must be INTEGER, got %s", args[1].Type())
 		}
 
 		end = int(args[1].(*object.Integer).Value)
 	}
 
 	if start < 0 || start > len(arr.Elements) {
-		return object.NewError(arr.Node(), "first argument to `slice` out of range")
+		return object.NewError(arr.Node(), "first argument to `Array.slice()` out of range")
+	}
+
+	if end < 0 {
+		end = len(arr.Elements) + end
 	}
 
 	if end < 0 || end > len(arr.Elements) {
-		return object.NewError(arr.Node(), "second argument to `slice` out of range")
+		return object.NewError(arr.Node(), "second argument to `Array.slice()` out of range")
 	}
 
 	return object.NewArray(arr.Node(), arr.Elements[start:end])
@@ -465,16 +469,12 @@ func (e *Evaluator) arraySort(arr *object.Array, args ...object.Object) object.O
 
 			return arr
 		} else if args[0].Type() != object.FUNCTION_OBJ && args[0].Type() != object.BUILTIN_OBJ {
-			return object.NewError(arr.Node(), "argument to `sort` must be FUNCTION or BUILTIN, got %s", args[0].Type())
+			return object.NewError(arr.Node(), "argument to `Array.sort()` must be BOOLEAN, FUNCTION or BUILTIN, got %s", args[0].Type())
 		}
 	}
 
 	f := args[0]
-	callbackArgumentsCount, err := getCallbackArgumentsCount(f, "Array.sort()")
-
-	if err != nil {
-		return err
-	}
+	callbackArgumentsCount, _ := getCallbackArgumentsCount(f, "Array.sort()")
 
 	if callbackArgumentsCount < 2 {
 		return object.NewError(f.Node(), "Array.sort() callback must take at least 2 arguments")
@@ -500,6 +500,8 @@ func (e *Evaluator) arraySort(arr *object.Array, args ...object.Object) object.O
 	sorted := make([]object.Object, len(arr.Elements))
 	copy(sorted, arr.Elements)
 
+	var err *object.Error
+
 	sort.Slice(arr.Elements, func(i, j int) bool {
 		args := []object.Object{arr.Elements[i], arr.Elements[j], object.NewInteger(arr.Node(), int64(i)), object.NewInteger(arr.Node(), int64(j)), arr}
 
@@ -507,12 +509,17 @@ func (e *Evaluator) arraySort(arr *object.Array, args ...object.Object) object.O
 		value := e.applyFunction(callExpression, f, args[:callbackArgumentsCount])
 
 		// If the value is an error, return the error
-		if _, ok := value.(*object.Error); ok {
+		if e, ok := value.(*object.Error); ok {
+			err = e
 			return false
 		}
 
 		return e.builtinBool(callExpression, value) == TRUE
 	})
+
+	if err != nil {
+		return err
+	}
 
 	return arr
 }
@@ -572,20 +579,20 @@ func (e *Evaluator) arrayAny(arr *object.Array, args ...object.Object) object.Ob
 	return FALSE
 }
 
-func (e *Evaluator) arrayAll(arr *object.Array, args ...object.Object) object.Object {
+func (e *Evaluator) arrayEvery(arr *object.Array, args ...object.Object) object.Object {
 	if len(args) != 1 {
-		return object.NewError(arr.Node(), "Array.all() takes exactly 1 argument")
+		return object.NewError(arr.Node(), "Array.every() takes exactly 1 argument")
 	}
 
 	f := args[0]
-	callbackArgumentsCount, err := getCallbackArgumentsCount(f, "Array.all()")
+	callbackArgumentsCount, err := getCallbackArgumentsCount(f, "Array.every()")
 
 	if err != nil {
 		return err
 	}
 
 	if callbackArgumentsCount < 1 {
-		return object.NewError(f.Node(), "Array.all() callback must take at least 1 argument")
+		return object.NewError(f.Node(), "Array.every() callback must take at least 1 argument")
 	}
 
 	// Create a call expression to pass to the applyFunction method to have the correct line and column numbers for errors
@@ -664,7 +671,7 @@ func (e *Evaluator) stringSplit(str *object.String, args ...object.Object) objec
 
 	if len(args) == 1 {
 		if args[0].Type() != object.STRING_OBJ {
-			return object.NewError(str.Node(), "argument to `split` must be STRING, got %s", args[0].Type())
+			return object.NewError(str.Node(), "argument to `String.split()` must be STRING, got %s", args[0].Type())
 		}
 
 		separator = args[0].(*object.String).Value
@@ -686,7 +693,7 @@ func (e *Evaluator) stringContains(str *object.String, args ...object.Object) ob
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(str.Node(), "argument to `contains` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `String.contains()` must be STRING, got %s", args[0].Type())
 	}
 
 	return e.nativeBoolToBooleanObject(strings.Contains(str.Value, args[0].(*object.String).Value))
@@ -698,11 +705,11 @@ func (e *Evaluator) stringReplace(str *object.String, args ...object.Object) obj
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(str.Node(), "first argument to `replace` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "first argument to `String.replace()` must be STRING, got %s", args[0].Type())
 	}
 
 	if args[1].Type() != object.STRING_OBJ {
-		return object.NewError(str.Node(), "second argument to `replace` must be STRING, got %s", args[1].Type())
+		return object.NewError(str.Node(), "second argument to `String.replace()` must be STRING, got %s", args[1].Type())
 	}
 
 	return object.NewString(str.Node(), strings.ReplaceAll(str.Value, args[0].(*object.String).Value, args[1].(*object.String).Value))
@@ -738,7 +745,7 @@ func (e *Evaluator) stringRepeat(str *object.String, args ...object.Object) obje
 	}
 
 	if args[0].Type() != object.INTEGER_OBJ {
-		return object.NewError(str.Node(), "argument to `repeat` must be INTEGER, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `String.repeat()` must be INTEGER, got %s", args[0].Type())
 	}
 
 	intValue := int(args[0].(*object.Integer).Value)
@@ -770,7 +777,7 @@ func (e *Evaluator) stringSlice(str *object.String, args ...object.Object) objec
 	}
 
 	if args[0].Type() != object.INTEGER_OBJ {
-		return object.NewError(str.Node(), "first argument to `slice` must be INTEGER, got %s", args[0].Type())
+		return object.NewError(str.Node(), "first argument to `String.slice()` must be INTEGER, got %s", args[0].Type())
 	}
 
 	start := int(args[0].(*object.Integer).Value)
@@ -778,14 +785,14 @@ func (e *Evaluator) stringSlice(str *object.String, args ...object.Object) objec
 
 	if len(args) == 2 {
 		if args[1].Type() != object.INTEGER_OBJ {
-			return object.NewError(str.Node(), "second argument to `slice` must be INTEGER, got %s", args[1].Type())
+			return object.NewError(str.Node(), "second argument to `String.slice()` must be INTEGER, got %s", args[1].Type())
 		}
 
 		end = int(args[1].(*object.Integer).Value)
 	}
 
 	if start < 0 || start > len(str.Value) {
-		return object.NewError(str.Node(), "first argument to `slice` out of range")
+		return object.NewError(str.Node(), "first argument to `String.slice()` out of range")
 	}
 
 	if end < 0 {
@@ -793,7 +800,7 @@ func (e *Evaluator) stringSlice(str *object.String, args ...object.Object) objec
 	}
 
 	if end < 0 || end > len(str.Value) {
-		return object.NewError(str.Node(), "second argument to `slice` out of range")
+		return object.NewError(str.Node(), "second argument to `String.slice()` out of range")
 	}
 
 	return object.NewString(str.Node(), str.Value[start:end])
@@ -805,7 +812,7 @@ func (e *Evaluator) stringStartsWith(str *object.String, args ...object.Object) 
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(str.Node(), "argument to `startsWith` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `String.startsWith()` must be STRING, got %s", args[0].Type())
 	}
 
 	return e.nativeBoolToBooleanObject(strings.HasPrefix(str.Value, args[0].(*object.String).Value))
@@ -817,7 +824,7 @@ func (e *Evaluator) stringEndsWith(str *object.String, args ...object.Object) ob
 	}
 
 	if args[0].Type() != object.STRING_OBJ {
-		return object.NewError(str.Node(), "argument to `endsWith` must be STRING, got %s", args[0].Type())
+		return object.NewError(str.Node(), "argument to `String.endsWith()` must be STRING, got %s", args[0].Type())
 	}
 
 	return e.nativeBoolToBooleanObject(strings.HasSuffix(str.Value, args[0].(*object.String).Value))

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/iskandervdh/vorn/ast"
+	"github.com/iskandervdh/vorn/token"
 )
 
 type ObjectType string
@@ -41,7 +42,7 @@ type Null struct {
 	node ast.Node
 }
 
-func NewNull(node ast.Node) *Null {
+func newNull(node ast.Node) *Null {
 	return &Null{node: node}
 }
 
@@ -67,7 +68,7 @@ type Boolean struct {
 	Value bool
 }
 
-func NewBoolean(node ast.Node, value bool) *Boolean {
+func newBoolean(node ast.Node, value bool) *Boolean {
 	return &Boolean{node: node, Value: value}
 }
 
@@ -194,8 +195,8 @@ type Builtin struct {
 	ArgumentsCount int
 }
 
-func NewBuiltin(node ast.Node, function BuiltinFunction) *Builtin {
-	return &Builtin{node: node, Function: function}
+func NewBuiltin(node ast.Node, fn BuiltinFunction) *Builtin {
+	return &Builtin{node: node, Function: fn}
 }
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
@@ -291,14 +292,42 @@ func (s *String) HashKey() HashKey {
 	return HashKey{Type: s.Type(), Value: h.Sum64()}
 }
 
+// Reusable objects for TRUE, FALSE and NULL
+var (
+	TRUE = newBoolean(&ast.BooleanLiteral{
+		Token: token.Token{
+			Type:    "true",
+			Literal: "true",
+			Line:    1,
+			Column:  1,
+		},
+		Value: true,
+	}, true)
+	FALSE = newBoolean(&ast.BooleanLiteral{
+		Token: token.Token{
+			Type:    "false",
+			Literal: "false",
+			Line:    1,
+			Column:  1,
+		},
+		Value: false,
+	}, false)
+	NULL = newNull(&ast.NullLiteral{
+		Token: token.Token{
+			Type:    "null",
+			Literal: "null",
+		},
+	})
+)
+
 func Clone(node ast.Node, object Object) Object {
 	switch object.Type() {
 	case NULL_OBJ:
-		return NewNull(node)
+		return newNull(node)
 	case INTEGER_OBJ:
 		return NewInteger(node, object.(*Integer).Value)
 	case BOOLEAN_OBJ:
-		return NewBoolean(node, object.(*Boolean).Value)
+		return newBoolean(node, object.(*Boolean).Value)
 	case FLOAT_OBJ:
 		return NewFloat(node, object.(*Float).Value)
 	case RETURN_VALUE_OBJ:
@@ -334,6 +363,6 @@ func Clone(node ast.Node, object Object) Object {
 
 		return NewHash(node, object.(*Hash).Pairs)
 	default:
-		return NewNull(node)
+		return newNull(node)
 	}
 }

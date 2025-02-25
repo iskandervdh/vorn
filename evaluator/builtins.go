@@ -135,7 +135,7 @@ func (e *Evaluator) builtinBool(node ast.Node, args ...object.Object) object.Obj
 	case *object.Boolean:
 		return arg
 	case *object.Null:
-		return FALSE
+		return object.FALSE
 	case *object.Integer:
 		return e.nativeBoolToBooleanObject(arg.Value != 0)
 	case *object.Float:
@@ -186,7 +186,7 @@ func (e *Evaluator) builtinFirst(node ast.Node, args ...object.Object) object.Ob
 		return object.NewError(node, "argument to `first` must be ARRAY or STRING, got %s", args[0].Type())
 	}
 
-	return NULL
+	return object.NULL
 }
 
 func (e *Evaluator) builtinLast(node ast.Node, args ...object.Object) object.Object {
@@ -211,7 +211,7 @@ func (e *Evaluator) builtinLast(node ast.Node, args ...object.Object) object.Obj
 		return object.NewError(node, "argument to `last` must be ARRAY or STRING, got %s", args[0].Type())
 	}
 
-	return NULL
+	return object.NULL
 }
 
 // Array functions
@@ -238,7 +238,7 @@ func (e *Evaluator) builtinRest(node ast.Node, args ...object.Object) object.Obj
 		return object.NewArray(node, elements)
 	}
 
-	return NULL
+	return object.NULL
 }
 
 // IO functions
@@ -248,7 +248,7 @@ func (e *Evaluator) builtinPrint(node ast.Node, args ...object.Object) object.Ob
 		fmt.Println(arg.Inspect())
 	}
 
-	return NULL
+	return object.NULL
 }
 
 // Math functions

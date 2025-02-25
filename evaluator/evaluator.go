@@ -20,34 +20,6 @@ type Evaluator struct {
 	objectChainingFunctions map[string]ObjectChainingFunction
 }
 
-// Reusable objects for TRUE, FALSE and NULL
-var (
-	NULL = object.NewNull(&ast.NullLiteral{
-		Token: token.Token{
-			Type:    "null",
-			Literal: "null",
-		},
-	})
-	TRUE = object.NewBoolean(&ast.BooleanLiteral{
-		Token: token.Token{
-			Type:    "true",
-			Literal: "true",
-			Line:    1,
-			Column:  1,
-		},
-		Value: true,
-	}, true)
-	FALSE = object.NewBoolean(&ast.BooleanLiteral{
-		Token: token.Token{
-			Type:    "false",
-			Literal: "false",
-			Line:    1,
-			Column:  1,
-		},
-		Value: false,
-	}, false)
-)
-
 func New() *Evaluator {
 	e := &Evaluator{}
 
@@ -164,7 +136,7 @@ func (e *Evaluator) evalBlockStatement(block *ast.BlockStatement, parentEnv *obj
 		}
 	}
 
-	return NULL
+	return object.NULL
 }
 
 func (e *Evaluator) evalWhileStatement(we *ast.WhileStatement, env *object.Environment) object.Object {
@@ -194,7 +166,7 @@ func (e *Evaluator) evalWhileStatement(we *ast.WhileStatement, env *object.Envir
 		}
 	}
 
-	return NULL
+	return object.NULL
 }
 
 func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *object.Environment) object.Object {
@@ -236,27 +208,27 @@ func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *object.Environme
 		}
 	}
 
-	return NULL
+	return object.NULL
 }
 
 func (e *Evaluator) nativeBoolToBooleanObject(input bool) *object.Boolean {
 	if input {
-		return TRUE
+		return object.TRUE
 	}
 
-	return FALSE
+	return object.FALSE
 }
 
 func (e *Evaluator) evalExclamationOperatorExpression(right object.Object) object.Object {
 	switch right {
-	case TRUE:
-		return FALSE
-	case FALSE:
-		return TRUE
-	case NULL:
-		return TRUE
+	case object.TRUE:
+		return object.FALSE
+	case object.FALSE:
+		return object.TRUE
+	case object.NULL:
+		return object.TRUE
 	default:
-		return FALSE
+		return object.FALSE
 	}
 }
 
@@ -455,17 +427,17 @@ func (e *Evaluator) evalIfExpression(ie *ast.IfExpression, env *object.Environme
 		return e.evalBlockStatement(ie.Alternative, env)
 	}
 
-	return NULL
+	return object.NULL
 
 }
 
 func isTruthy(obj object.Object) bool {
 	switch obj {
-	case NULL:
+	case object.NULL:
 		return false
-	case TRUE:
+	case object.TRUE:
 		return true
-	case FALSE:
+	case object.FALSE:
 		return false
 	default:
 		return true
@@ -551,7 +523,7 @@ func (e *Evaluator) evalArrayIndexExpression(array, index object.Object) object.
 	}
 
 	if idx > max {
-		return NULL
+		return object.NULL
 	}
 
 	return arrayObject.Elements[idx]
@@ -569,7 +541,7 @@ func (e *Evaluator) evalHashIndexExpression(hash, index object.Object) object.Ob
 	pair, ok := hashObject.Pairs[key.HashKey()]
 
 	if !ok {
-		return NULL
+		return object.NULL
 	}
 
 	return pair.Value
@@ -740,7 +712,7 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		return object.NewFloat(node, node.Value)
 
 	case *ast.NullLiteral:
-		return object.NewNull(node)
+		return object.NULL
 
 	case *ast.StringLiteral:
 		return object.NewString(node, node.Value)

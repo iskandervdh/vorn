@@ -84,7 +84,7 @@ func testStringObject(t *testing.T, obj object.Object, expected string) bool {
 }
 
 func testNullObject(t *testing.T, obj object.Object) bool {
-	if obj != NULL {
+	if obj != object.NULL {
 		t.Errorf("object is not NULL. got %T (%+v)", obj, obj)
 		return false
 	}
@@ -198,7 +198,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
-func TestExclamationOperator(t *testing.T) {
+func TestBooleanOperators(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected bool
@@ -223,9 +223,9 @@ func TestExclamationOperator(t *testing.T) {
 		{"(1 > 2) == true", false},
 		{"(1 > 2) == false", true},
 	}
-	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testBooleanObject(t, evaluated, tt.expected)
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		testBooleanObject(t, evaluated, test.expected)
 	}
 }
 
@@ -263,6 +263,9 @@ func TestWhileExpressions(t *testing.T) {
 		{"let i = 0; while (i < 10) { i = i + 1; }; i;", 10},
 		{"let i = 0; while (i < 10) { i = i + 1; if (i == 4) { break; } }; i;", 4},
 		{"let x = 0; let i = 0; while (i < 4) { i = i + 1; if (i != 3) { continue; } x = i; }; x;", 3},
+		{`while (1 + "") { 1 }`, "[1:11] type mismatch: INTEGER + STRING"},
+		{`while (1) { 1 + "" }`, "[1:16] type mismatch: INTEGER + STRING"},
+		{`func(x) { while (x) { return x; } }(1)`, 1},
 	}
 
 	for _, test := range tests {
@@ -271,28 +274,203 @@ func TestWhileExpressions(t *testing.T) {
 
 		if ok {
 			testIntegerObject(t, evaluated, int64(integer))
-		} else {
-			testNullObject(t, evaluated)
+			continue
 		}
+
+		err, ok := test.expected.(string)
+
+		if ok {
+			testErrorObject(t, evaluated, err)
+			continue
+		}
+
+		testNullObject(t, evaluated)
 	}
 }
 
 func TestFor(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected int64
+		expected interface{}
 	}{
 		{"let x = 0; for (let i = 0; i < 10; i = i + 1) { x = x + 1; }; x;", 10},
 		{"let x = 0; for (let i = 0; i < 10; i = i + 1) { if (i == 4) { x = i; break; } }; x;", 4},
 		{"let x = 0; for (let i = 0; i < 4; i = i + 1) { if (i != 3) { continue; } x = i; }; x;", 3},
 		{"let i = 0; for (; i < 10; i = i + 1) { }; i;", 10},
 		{"let i = 0; for (; i < 10;) { i = i + 1; }; i;", 10},
+		{`for (let i = 0; i < 1 + ""; i = i + 1) { 1 }`, "[1:24] type mismatch: INTEGER + STRING"},
+		{`func(x) { for (let i = 0; i < x; i = i + 1) { return x; } }(1)`, 1},
 	}
 
 	for _, test := range tests {
 		evaluated := testEval(test.input)
+		integer, ok := test.expected.(int)
 
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+			continue
+		}
+
+		err, ok := test.expected.(string)
+
+		if ok {
+			testErrorObject(t, evaluated, err)
+			continue
+		}
+
+		testNullObject(t, evaluated)
+	}
+}
+
+func TestExclamationOperator(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"!true", false},
+		{"!false", true},
+		{"!5", false},
+		{"!!true", true},
+		{"!!false", false},
+		{"!!5", true},
+		{"!first([])", true},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		testBooleanObject(t, evaluated, test.expected)
+	}
+}
+
+func TestBitwiseNotOperator(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"~0", -1},
+		{"~1", -2},
+		{"~2", -3},
+		{"~-1", 0},
+		{"~-2", 1},
+		{"~-3", 2},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
 		testIntegerObject(t, evaluated, test.expected)
+	}
+}
+
+func TestIntegerReturningInfixExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"1 + 1", 2},
+		{"1 - 1", 0},
+		{"1 * 1", 1},
+		{`1 % 1`, 0.0},
+		{"1 & 1", 1},
+		{"1 & 2", 0},
+		{"1 | 1", 1},
+		{"1 | 2", 3},
+		{"1 ^ 1", 0},
+		{"1 ^ 2", 3},
+		{"1 << 1", 2},
+		{"1 << 2", 4},
+		{"4 >> 1", 2},
+		{"4 >> 2", 1},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		testIntegerObject(t, evaluated, test.expected)
+	}
+}
+
+func TestFloatReturningInfixExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"1.0 + 1.0", 2.0},
+		{"1.0 - 1.0", 0.0},
+		{"1.0 * 1.0", 1.0},
+		{"1.0 / 1.0", 1.0},
+		{`1 / 1`, 1.0},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		testFloatObject(t, evaluated, test.expected)
+	}
+}
+
+func TestBooleanReturningInfixExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"1 == 1", true},
+		{"1 != 1", false},
+		{"1 == 2", false},
+		{"1 != 2", true},
+		{"true == true", true},
+		{"true != true", false},
+		{"true == false", false},
+		{"true != false", true},
+		{"false == false", true},
+		{"false != false", false},
+		{"false == true", false},
+		{"false != true", true},
+		{`1.0 == 1.0`, true},
+		{`1.0 != 1.0`, false},
+		{`1.0 == 2.0`, false},
+		{`1.0 != 2.0`, true},
+		{`1 < 2`, true},
+		{`1 > 2`, false},
+		{`1 <= 2`, true},
+		{`1 >= 2`, false},
+		{`1 <= 1`, true},
+		{`1 >= 1`, true},
+		{`1 < 1`, false},
+		{`1 > 1`, false},
+		{`1.0 < 2.0`, true},
+		{`1.0 > 2.0`, false},
+		{`1.0 <= 2.0`, true},
+		{`1.0 >= 2.0`, false},
+		{`1.0 <= 1.0`, true},
+		{`1.0 >= 1.0`, true},
+		{`1.0 < 1.0`, false},
+		{`1.0 > 1.0`, false},
+		{`"hello" == "hello"`, true},
+		{`"hello" != "hello"`, false},
+		{`"hello" == "world"`, false},
+		{`"hello" != "world"`, true},
+		{`1 || 0`, true},
+		{`1 || 1`, true},
+		{`0 || 1`, true},
+		{`0 || 0`, false},
+		{`1 && 0`, false},
+		{`1 && 1`, true},
+		{`0 && 1`, false},
+		{`0 && 0`, false},
+		{`true || false`, true},
+		{`true && false`, false},
+		{`false || true`, true},
+		{`false && true`, false},
+		{`true || true`, true},
+		{`true && true`, true},
+		{`false || false`, false},
+		{`null || false`, false},
+		{`null && false`, false},
+		{`null || true`, true},
+		{`null && true`, false},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		testBooleanObject(t, evaluated, test.expected)
 	}
 }
 
@@ -584,8 +762,8 @@ false: 6
 		(object.NewString(nil, "two")).HashKey():   2,
 		(object.NewString(nil, "three")).HashKey(): 3,
 		(object.NewInteger(nil, 4)).HashKey():      4,
-		TRUE.HashKey():                             5,
-		FALSE.HashKey():                            6,
+		object.TRUE.HashKey():                      5,
+		object.FALSE.HashKey():                     6,
 	}
 
 	if len(result.Pairs) != len(expected) {
@@ -656,4 +834,37 @@ x = 4;
 x;`
 
 	testIntegerObject(t, testEval(input), 4)
+}
+
+func TestIsError(t *testing.T) {
+	input := `5 + "a"`
+	evaluated := testEval(input)
+	if evaluated.Type() != object.ERROR_OBJ {
+		t.Errorf("no error object returned. got %T (%+v)", evaluated, evaluated)
+	}
+
+	if isError(nil) {
+		t.Errorf("nil is error")
+	}
+}
+
+func TestIsTruthy(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"true", true},
+		{"false", false},
+		{"1 == 1", true},
+		{"1 != 1", false},
+		{"first([])", false},
+		{"null", false},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		if isTruthy(evaluated) != test.expected {
+			t.Errorf("wrong truth value. got %t for input %s", isTruthy(evaluated), test.input)
+		}
+	}
 }

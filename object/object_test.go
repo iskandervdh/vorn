@@ -95,7 +95,7 @@ func TestObjectClone(t *testing.T) {
 					Column:  1,
 				},
 			},
-			object: NewBoolean(&ast.BooleanLiteral{
+			object: newBoolean(&ast.BooleanLiteral{
 				Value: true,
 				Token: token.Token{
 					Type:    token.TRUE,
@@ -290,7 +290,7 @@ func TestObjectClone(t *testing.T) {
 					Column:  1,
 				},
 			},
-			object: NewNull(&ast.NullLiteral{
+			object: newNull(&ast.NullLiteral{
 				Token: token.Token{
 					Type:    token.NULL,
 					Literal: "null",
@@ -704,7 +704,7 @@ func TestNewFunctions(t *testing.T) {
 		newObject Object
 		expected  interface{}
 	}{
-		{BOOLEAN_OBJ, NewBoolean(&ast.BooleanLiteral{Value: true}, true), "true"},
+		{BOOLEAN_OBJ, newBoolean(&ast.BooleanLiteral{Value: true}, true), "true"},
 		{INTEGER_OBJ, NewInteger(&ast.IntegerLiteral{Value: 1}, 1), "1"},
 		{FLOAT_OBJ, NewFloat(&ast.FloatLiteral{Value: 1.5}, 1.5), "1.5"},
 		{STRING_OBJ, NewString(&ast.StringLiteral{Value: "hello"}, "hello"), "hello"},
@@ -718,7 +718,7 @@ func TestNewFunctions(t *testing.T) {
 				Value: NewInteger(&ast.IntegerLiteral{Value: 1}, 1),
 			},
 		}), "{a: 1}"},
-		{NULL_OBJ, NewNull(&ast.NullLiteral{}), "null"},
+		{NULL_OBJ, newNull(&ast.NullLiteral{}), "null"},
 		{RETURN_VALUE_OBJ, NewReturnValue(&ast.ReturnStatement{}, NewInteger(&ast.IntegerLiteral{Value: 2}, 2)), "2"},
 		{BREAK_OBJ, NewBreak(&ast.BreakExpression{}), "break"},
 		{CONTINUE_OBJ, NewContinue(&ast.ContinueExpression{}), "continue"},

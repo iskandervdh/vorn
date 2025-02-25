@@ -232,10 +232,10 @@ func (e *Evaluator) arrayFilter(arr *object.Array, args ...object.Object) object
 			return value
 		}
 
-		if value == TRUE {
+		if value == object.TRUE {
 			newArray.Elements = append(newArray.Elements, el)
 			// Check if value cast to boolean is true
-		} else if value != FALSE && e.builtinBool(callExpression, value) == TRUE {
+		} else if value != object.FALSE && e.builtinBool(callExpression, value) == object.TRUE {
 			newArray.Elements = append(newArray.Elements, el)
 		}
 	}
@@ -299,11 +299,11 @@ func (e *Evaluator) arrayContains(arr *object.Array, args ...object.Object) obje
 
 	for _, el := range arr.Elements {
 		if el.Inspect() == args[0].Inspect() {
-			return TRUE
+			return object.TRUE
 		}
 	}
 
-	return FALSE
+	return object.FALSE
 }
 
 func (e *Evaluator) arrayIndexOf(arr *object.Array, args ...object.Object) object.Object {
@@ -366,14 +366,14 @@ func (e *Evaluator) arrayFind(arr *object.Array, args ...object.Object) object.O
 		}
 
 		// Check if value cast to boolean is true
-		if value == TRUE {
+		if value == object.TRUE {
 			return el
-		} else if value != FALSE && e.builtinBool(callExpression, value) == TRUE {
+		} else if value != object.FALSE && e.builtinBool(callExpression, value) == object.TRUE {
 			return el
 		}
 	}
 
-	return NULL
+	return object.NULL
 }
 
 func (e *Evaluator) arrayJoin(arr *object.Array, args ...object.Object) object.Object {
@@ -514,7 +514,7 @@ func (e *Evaluator) arraySort(arr *object.Array, args ...object.Object) object.O
 			return false
 		}
 
-		return e.builtinBool(callExpression, value) == TRUE
+		return e.builtinBool(callExpression, value) == object.TRUE
 	})
 
 	if err != nil {
@@ -569,14 +569,14 @@ func (e *Evaluator) arrayAny(arr *object.Array, args ...object.Object) object.Ob
 		}
 
 		// Check if value cast to boolean is true
-		if value == TRUE {
-			return TRUE
-		} else if value != FALSE && e.builtinBool(callExpression, value) == TRUE {
-			return TRUE
+		if value == object.TRUE {
+			return object.TRUE
+		} else if value != object.FALSE && e.builtinBool(callExpression, value) == object.TRUE {
+			return object.TRUE
 		}
 	}
 
-	return FALSE
+	return object.FALSE
 }
 
 func (e *Evaluator) arrayEvery(arr *object.Array, args ...object.Object) object.Object {
@@ -624,14 +624,14 @@ func (e *Evaluator) arrayEvery(arr *object.Array, args ...object.Object) object.
 		}
 
 		// Check if value cast to boolean is true
-		if value == FALSE {
-			return FALSE
-		} else if value != TRUE && e.builtinBool(callExpression, value) == FALSE {
-			return FALSE
+		if value == object.FALSE {
+			return object.FALSE
+		} else if value != object.TRUE && e.builtinBool(callExpression, value) == object.FALSE {
+			return object.FALSE
 		}
 	}
 
-	return TRUE
+	return object.TRUE
 }
 
 /**

@@ -381,7 +381,7 @@ func (e *Evaluator) arrayJoin(arr *object.Array, args ...object.Object) object.O
 		return object.NewError(arr.Node(), "Array.join() takes at most 1 argument, got %d", len(args))
 	}
 
-	separator := ", "
+	separator := ","
 
 	if len(args) == 1 {
 		if args[0].Type() != object.STRING_OBJ {
@@ -438,6 +438,10 @@ func (e *Evaluator) arraySlice(arr *object.Array, args ...object.Object) object.
 
 	if start < 0 || start > len(arr.Elements) {
 		return object.NewError(arr.Node(), "first argument to `slice` out of range")
+	}
+
+	if end < 0 {
+		end = len(arr.Elements) + end
 	}
 
 	if end < 0 || end > len(arr.Elements) {

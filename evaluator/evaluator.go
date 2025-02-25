@@ -119,7 +119,7 @@ func New() *Evaluator {
 		"slice":    e.arraySlice,
 		"sort":     e.arraySort,
 		"any":      e.arrayAny,
-		"every":    e.arrayAll,
+		"every":    e.arrayEvery,
 	}
 
 	e.objectChainingFunctions = map[string]ObjectChainingFunction{

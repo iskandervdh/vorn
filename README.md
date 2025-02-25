@@ -3,6 +3,7 @@
 <p align="center">
 <img src="https://github.com/iskandervdh/vorn/actions/workflows/test.yml/badge.svg?branch=main">
 <img src="https://raw.githubusercontent.com/iskandervdh/vorn/badges/.badges/main/coverage.svg">
+<img src="https://img.shields.io/github/v/tag/iskandervdh/vorn?label=version&color=blue">
 </p>
 
 # vorn

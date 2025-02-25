@@ -1,5 +1,7 @@
 name: Create Badge
 
+permissions: write-all
+
 on:
   push:
     branches:
@@ -19,7 +21,7 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Install test dependencies
+    - name: Generate coverage report
       run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 
     - name: Check test coverage

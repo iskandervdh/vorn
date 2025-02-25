@@ -8,3 +8,10 @@ install-go-test-coverage:
 check-coverage: install-go-test-coverage
 	go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	${GOBIN}/go-test-coverage --config=./.testcoverage.yml
+
+run-all-examples:
+	set -e
+	# Run all examples
+	for filename in ./examples/*.vorn; do \
+		./vorn "$$filename"; \
+	done

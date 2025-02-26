@@ -122,7 +122,6 @@ func (p *Parser) registerPrefixFunctions() {
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
-	p.registerPrefix(token.ASSIGN, p.parseReassignLiteral)
 }
 
 func (p *Parser) registerInfix(tokenType token.TokenType, function infixParseFunction) {
@@ -391,7 +390,7 @@ Parse a function statement, including the function name, arguments and body
 func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
 	statement := &ast.FunctionStatement{Token: p.currentToken}
 
-	if !p.expectPeek(token.IDENT) {
+	if !p.expectPeek(token.IDENT) { // coverage-ignore
 		return nil
 	}
 
@@ -416,7 +415,7 @@ func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
 Parse a variable statement, including the variable name and value
 */
 func (p *Parser) parseVariableStatement() *ast.VariableStatement {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("VariableStatement"))
 	}
 
@@ -464,7 +463,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 Parse a while statement, including the condition and body
 */
 func (p *Parser) parseWhileStatement() *ast.WhileStatement {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("WhileStatement"))
 	}
 
@@ -494,7 +493,7 @@ func (p *Parser) parseWhileStatement() *ast.WhileStatement {
 Parse a for statement, including the initialization, condition, update and body
 */
 func (p *Parser) parseForStatement() *ast.ForStatement {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("ForStatement"))
 	}
 
@@ -559,7 +558,7 @@ The parser will keep parsing expressions until it encounters a semicolon or the 
 The parser will then return the parsed expression
 */
 func (p *Parser) parseExpression(precedence int) ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("Expression"))
 	}
 
@@ -591,7 +590,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 Parse an expression statement, including the expression and a semicolon
 */
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("ExpressionStatement"))
 	}
 
@@ -609,7 +608,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 Parse a reassignment expression, including the name, value and a semicolon
 */
 func (p *Parser) parseReassignmentExpression() ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("ReassignmentExpression"))
 	}
 
@@ -660,7 +659,7 @@ func (p *Parser) parseIdentifier() ast.Expression {
 Parse an integer literal expression based on the current token
 */
 func (p *Parser) parseIntegerLiteral() ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("IntegerLiteral"))
 	}
 
@@ -721,7 +720,7 @@ func (p *Parser) noPrefixParseFunctionError(t token.TokenType) {
 Parse a prefix expression, including the operator and right-hand side
 */
 func (p *Parser) parsePrefixExpression() ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("PrefixExpression"))
 	}
 
@@ -740,7 +739,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 Parse an infix expression, including the left-hand side, operator and right-hand side
 */
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("InfixExpression"))
 	}
 
@@ -761,7 +760,7 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 Parse a call expression, including the function name and the call arguments
 */
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("CallExpression"))
 	}
 
@@ -790,7 +789,7 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 Parse an if expression, including the condition, consequence and alternative
 */
 func (p *Parser) parseIfExpression() ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("IfExpression"))
 	}
 
@@ -851,7 +850,7 @@ It will also check for reassignments of constants and redefinitions of variables
 The parser will then return the parsed block statement
 */
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("BlockStatement"))
 	}
 
@@ -940,7 +939,7 @@ func (p *Parser) parseFunctionArguments() []*ast.Identifier {
 Parse a string literal
 */
 func (p *Parser) parseStringLiteral() ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("StringLiteral"))
 	}
 
@@ -1006,7 +1005,7 @@ Parse a chaining expression, including the left-hand side and the right-hand sid
 The parser will continue parsing chained expressions if there are any
 */
 func (p *Parser) parseChainingExpression(left ast.Expression) ast.Expression {
-	if p.trace {
+	if p.trace { // coverage-ignore
 		defer untrace(trace("ChainingExpression"))
 	}
 
@@ -1069,13 +1068,4 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 	}
 
 	return hash
-}
-
-/*
-Parse a reassignment literal to get the new value of a variable
-*/
-func (p *Parser) parseReassignLiteral() ast.Expression {
-	p.nextToken()
-
-	return p.parseExpression(LOWEST)
 }

@@ -1236,3 +1236,67 @@ func TestParseBreakContinue(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckVariableRedefinition(t *testing.T) {
+	input := `let x = 5;
+x = x + 1;
+let x = 10;`
+
+	l := lexer.New(input)
+	p := New(l, false)
+	p.ParseProgram()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Error("Expected a parser error")
+	}
+
+	expectedError := "[3:2] can not redefine variable x."
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}
+
+func TestParseChainingExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"a.b.c;", "((a.b).c)"},
+		{"a.b.c.d;", "(((a.b).c).d)"},
+		{"a.b.c.d();", "(((a.b).c).d())"},
+		{"a.b.c.d().e;", "((((a.b).c).d()).e)"},
+	}
+
+	for _, test := range tests {
+		program := initializeParserTest(t, test.input, 1)
+
+		statement := program.Statements[0].(*ast.ExpressionStatement)
+
+		if statement.String() != test.expected {
+			t.Errorf("Expected statement to be %q, got %q", test.expected, statement.String())
+		}
+	}
+}
+
+func TestParseChainingExpressionError(t *testing.T) {
+	input := "a.b.1;"
+
+	l := lexer.New(input)
+	p := New(l, false)
+	p.ParseProgram()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Fatal("Expected a parser error")
+	}
+
+	expectedError := "[1:6]: expected 'IDENT', got INT instead"
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}

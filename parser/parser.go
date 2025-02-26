@@ -1063,7 +1063,7 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 		}
 	}
 
-	if !p.expectPeek(token.RBRACE) {
+	if !p.expectPeek(token.RBRACE) { // coverage-ignore
 		return nil
 	}
 

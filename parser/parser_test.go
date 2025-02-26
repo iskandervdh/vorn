@@ -1300,3 +1300,49 @@ func TestParseChainingExpressionError(t *testing.T) {
 		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
 	}
 }
+
+func TestParseHashLiteralErrors(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedError string
+	}{
+		{"{1: 2, 3}", "[1:10]: expected ':', got } instead"},
+		{"{1: 2, 3: 4 $}", "[1:14]: expected ',', got ILLEGAL instead"},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l, false)
+		p.parseHashLiteral()
+
+		errors := p.Errors()
+
+		if len(errors) != 1 {
+			t.Fatal("Expected a parser error")
+		}
+
+		if errors[0] != test.expectedError {
+			t.Errorf("Expected error message to be %q, got %q", test.expectedError, errors[0])
+		}
+	}
+}
+
+func TestParseIndexExpressionError(t *testing.T) {
+	input := "arr[1, 2];"
+
+	l := lexer.New(input)
+	p := New(l, false)
+	p.parseIndexExpression(nil)
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Fatal("Expected a parser error")
+	}
+
+	expectedError := "[1:11]: expected ']', got ; instead"
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}

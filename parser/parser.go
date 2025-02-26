@@ -616,7 +616,7 @@ func (p *Parser) parseReassignmentExpression() ast.Expression {
 
 	statement.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 
-	if !p.expectPeek(token.ASSIGN) {
+	if !p.expectPeek(token.ASSIGN) { // coverage-ignore
 		return nil
 	}
 

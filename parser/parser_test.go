@@ -1346,3 +1346,52 @@ func TestParseIndexExpressionError(t *testing.T) {
 		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
 	}
 }
+
+func TestIfExpressionError(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedError string
+	}{
+		{"if (x < y) { x } else { y } else", "[1:30]: unexpected token ELSE"},
+		{"if (x < y) { x } else", "[1:23]: expected '{', got EOF instead"},
+		{"if (x < y)", "[1:12]: expected '{', got EOF instead"},
+		{"if (x < y", "[1:11]: expected ')', got EOF instead"},
+		{"if", "[1:4]: expected '(', got EOF instead"},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l, false)
+		p.ParseProgram()
+
+		errors := p.Errors()
+
+		if len(errors) != 1 {
+			t.Fatal("Expected a parser error")
+		}
+
+		if errors[0] != test.expectedError {
+			t.Errorf("Expected error message to be %q, got %q", test.expectedError, errors[0])
+		}
+	}
+}
+
+func TestParseGroupedExpressionError(t *testing.T) {
+	input := "(1 + 2;"
+
+	l := lexer.New(input)
+	p := New(l, false)
+	p.parseGroupedExpression()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Fatal("Expected a parser error")
+	}
+
+	expectedError := "[1:8]: expected ')', got ; instead"
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}

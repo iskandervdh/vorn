@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/iskandervdh/vorn/token"
@@ -165,10 +166,24 @@ func (ie *IndexExpression) Line() int   { return ie.Token.Line }
 func (ie *IndexExpression) Column() int { return ie.Token.Column }
 
 type ReassignmentExpression struct {
-	Token token.Token // The = token
+	Token token.Token // The assignment operator token (e.g. =, +=, -=)
 	Name  *Identifier
 	Value Expression
 }
+
+func (rs *ReassignmentExpression) expressionNode()      {}
+func (rs *ReassignmentExpression) TokenLiteral() string { return rs.Token.Literal }
+func (rs *ReassignmentExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(rs.Name.String())
+	out.WriteString(fmt.Sprintf(" %s ", rs.Token.Literal))
+	out.WriteString(rs.Value.String())
+
+	return out.String()
+}
+func (rs *ReassignmentExpression) Line() int   { return rs.Token.Line }
+func (rs *ReassignmentExpression) Column() int { return rs.Token.Column }
 
 type ChainingExpression struct {
 	Token token.Token // The '.' token
@@ -191,17 +206,3 @@ func (ce *ChainingExpression) String() string {
 }
 func (ce *ChainingExpression) Line() int   { return ce.Token.Line }
 func (ce *ChainingExpression) Column() int { return ce.Token.Column }
-
-func (rs *ReassignmentExpression) expressionNode()      {}
-func (rs *ReassignmentExpression) TokenLiteral() string { return rs.Token.Literal }
-func (rs *ReassignmentExpression) String() string {
-	var out bytes.Buffer
-
-	out.WriteString(rs.Name.String())
-	out.WriteString(" = ")
-	out.WriteString(rs.Value.String())
-
-	return out.String()
-}
-func (rs *ReassignmentExpression) Line() int   { return rs.Token.Line }
-func (rs *ReassignmentExpression) Column() int { return rs.Token.Column }

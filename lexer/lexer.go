@@ -52,9 +52,57 @@ func (l *Lexer) NextToken() token.Token {
 			t = token.New(token.ASSIGN, l.char, l.line, l.column)
 		}
 	case '+':
-		t = token.New(token.PLUS, l.char, l.line, l.column)
+		if l.peekChar() == '+' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.INCREMENT,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.PLUS_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else {
+			t = token.New(token.PLUS, l.char, l.line, l.column)
+		}
 	case '-':
-		t = token.New(token.MINUS, l.char, l.line, l.column)
+		if l.peekChar() == '-' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.DECREMENT,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.MINUS_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else {
+			t = token.New(token.MINUS, l.char, l.line, l.column)
+		}
 	case '!':
 		if l.peekChar() == '=' {
 			char := l.char
@@ -71,15 +119,54 @@ func (l *Lexer) NextToken() token.Token {
 			t = token.New(token.EXCLAMATION, l.char, l.line, l.column)
 		}
 	case '*':
-		t = token.New(token.ASTERISK, l.char, l.line, l.column)
-	case '/':
-		t = l.skipComment()
+		if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
 
-		if t.Type == token.COMMENT {
-			return l.NextToken()
+			t = token.Token{
+				Type:    token.MULTIPLY_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else {
+			t = token.New(token.ASTERISK, l.char, l.line, l.column)
+		}
+	case '/':
+		if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.DIVIDE_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else {
+			t = l.skipComment()
+
+			if t.Type == token.COMMENT {
+				return l.NextToken()
+			}
 		}
 	case '%':
-		t = token.New(token.PERCENT, l.char, l.line, l.column)
+		if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.MODULO_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else {
+			t = token.New(token.PERCENT, l.char, l.line, l.column)
+		}
 	case '<':
 		if l.peekChar() == '=' {
 			char := l.char
@@ -97,11 +184,23 @@ func (l *Lexer) NextToken() token.Token {
 			l.readChar()
 			literal := string(char) + string(l.char)
 
-			t = token.Token{
-				Type:    token.LEFT_SHIFT,
-				Literal: literal,
-				Line:    l.line,
-				Column:  l.column,
+			if l.peekChar() == '=' {
+				l.readChar()
+				literal += string(l.char)
+
+				t = token.Token{
+					Type:    token.LEFT_SHIFT_ASSIGN,
+					Literal: literal,
+					Line:    l.line,
+					Column:  l.column,
+				}
+			} else {
+				t = token.Token{
+					Type:    token.LEFT_SHIFT,
+					Literal: literal,
+					Line:    l.line,
+					Column:  l.column,
+				}
 			}
 		} else {
 			t = token.New(token.LT, l.char, l.line, l.column)
@@ -123,11 +222,23 @@ func (l *Lexer) NextToken() token.Token {
 			l.readChar()
 			literal := string(char) + string(l.char)
 
-			t = token.Token{
-				Type:    token.RIGHT_SHIFT,
-				Literal: literal,
-				Line:    l.line,
-				Column:  l.column,
+			if l.peekChar() == '=' {
+				l.readChar()
+				literal += string(l.char)
+
+				t = token.Token{
+					Type:    token.RIGHT_SHIFT_ASSIGN,
+					Literal: literal,
+					Line:    l.line,
+					Column:  l.column,
+				}
+			} else {
+				t = token.Token{
+					Type:    token.RIGHT_SHIFT,
+					Literal: literal,
+					Line:    l.line,
+					Column:  l.column,
+				}
 			}
 		} else {
 			t = token.New(token.GT, l.char, l.line, l.column)
@@ -186,6 +297,17 @@ func (l *Lexer) NextToken() token.Token {
 				Line:    l.line,
 				Column:  l.column,
 			}
+		} else if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.BITWISE_OR_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
 		} else {
 			t = token.New(token.BITWISE_OR, l.char, l.line, l.column)
 		}
@@ -201,11 +323,35 @@ func (l *Lexer) NextToken() token.Token {
 				Line:    l.line,
 				Column:  l.column,
 			}
+		} else if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.BITWISE_AND_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
 		} else {
 			t = token.New(token.BITWISE_AND, l.char, l.line, l.column)
 		}
 	case '^':
-		t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
+		if l.peekChar() == '=' {
+			ch := l.char
+			l.readChar()
+			literal := string(ch) + string(l.char)
+
+			t = token.Token{
+				Type:    token.BITWISE_XOR_ASSIGN,
+				Literal: literal,
+				Line:    l.line,
+				Column:  l.column,
+			}
+		} else {
+			t = token.New(token.BITWISE_XOR, l.char, l.line, l.column)
+		}
 	case '~':
 		t = token.New(token.BITWISE_NOT, l.char, l.line, l.column)
 	case 0:

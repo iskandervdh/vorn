@@ -1,0 +1,29 @@
+let x = 10;
+
+x = 5;
+print(x);
+x += 2;
+print(x);
+x -= 3;
+print(x);
+x *= 4;
+print(x);
+x /= 5;
+print(x);
+
+let y = 11;
+y %= 6;
+print(y);
+
+let z = 12;
+z |= 7;
+print(z);
+z &= 8;
+print(z);
+z ^= 9;
+print(z);
+
+z <<= 2;
+print(z);
+z >>= 1;
+print(z);

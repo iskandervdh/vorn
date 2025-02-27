@@ -321,8 +321,8 @@ func TestForStatement(t *testing.T) {
 		},
 		Update: &ReassignmentExpression{
 			Token: token.Token{
-				Type:    token.IDENT,
-				Literal: "foo",
+				Type:    token.ASSIGN,
+				Literal: "=",
 			},
 			Name: &Identifier{
 				Token: token.Token{
@@ -392,8 +392,8 @@ func TestForStatement(t *testing.T) {
 		t.Errorf("statement.Update.String() wrong. got=%q", statement.Update.String())
 	}
 
-	if statement.Update.TokenLiteral() != "foo" {
-		t.Errorf("statement.Update.TokenLiteral() wrong. got=%q", statement.Update.TokenLiteral())
+	if statement.Update.String() != "foo = foo + 1" {
+		t.Errorf("statement.Update.String() wrong. got=%q", statement.Update.String())
 	}
 
 	if statement.Line() != 1 {

@@ -47,6 +47,7 @@ const (
 	PRODUCT      // * or /
 	PREFIX       // -x, !x or ~x
 	POSTFIX      // object.property, object.method(args), function(X), array[index]
+	INC_DEC      // ++ or --
 )
 
 /*
@@ -74,6 +75,8 @@ var precedences = map[token.TokenType]int{
 	token.DOT:         POSTFIX,
 	token.LPAREN:      POSTFIX,
 	token.LBRACKET:    POSTFIX,
+	token.INCREMENT:   INC_DEC,
+	token.DECREMENT:   INC_DEC,
 }
 
 /*
@@ -123,6 +126,8 @@ func (p *Parser) registerPrefixFunctions() {
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
+	p.registerPrefix(token.INCREMENT, p.parseIncrementDecrementPrefix)
+	p.registerPrefix(token.DECREMENT, p.parseIncrementDecrementPrefix)
 }
 
 func (p *Parser) registerInfix(tokenType token.TokenType, function infixParseFunction) {
@@ -151,6 +156,8 @@ func (p *Parser) registerInfixFunctions() {
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 	p.registerInfix(token.DOT, p.parseChainingExpression)
+	p.registerInfix(token.INCREMENT, p.parseIncrementDecrement)
+	p.registerInfix(token.DECREMENT, p.parseIncrementDecrement)
 }
 
 func (p *Parser) Errors() []string {
@@ -1058,6 +1065,56 @@ func (p *Parser) parseChainingExpression(left ast.Expression) ast.Expression {
 		p.nextToken()
 		return p.parseChainingExpression(expression)
 	}
+
+	return expression
+}
+
+func (p *Parser) parseIncrementDecrement(left ast.Expression) ast.Expression {
+	if p.trace { // coverage-ignore
+		defer untrace(trace("IncrementDecrement"))
+	}
+
+	var identifier *ast.Identifier
+
+	switch exp := left.(type) {
+	case *ast.Identifier:
+		identifier = exp
+	case *ast.IncrementDecrementExpression:
+		identifier = exp.Identifier
+	default:
+		p.addError(fmt.Sprintf("unexpected token %s", p.currentToken.Type), false)
+		return nil
+	}
+
+	expression := &ast.IncrementDecrementExpression{
+		Token:      p.currentToken,
+		Identifier: identifier,
+		Before:     true,
+	}
+
+	return expression
+}
+
+func (p *Parser) parseIncrementDecrementPrefix() ast.Expression {
+	if p.trace { // coverage-ignore
+		defer untrace(trace("Increment Decrement Prefix"))
+	}
+
+	expression := &ast.IncrementDecrementExpression{
+		Token:  p.currentToken,
+		Before: false,
+	}
+
+	p.nextToken()
+
+	identifier, ok := p.parseIdentifier().(*ast.Identifier)
+
+	if !ok {
+		p.addError(fmt.Sprintf("unexpected token %s", p.currentToken.Type), false)
+		return nil
+	}
+
+	expression.Identifier = identifier
 
 	return expression
 }

@@ -1,0 +1,13 @@
+let x = 10;
+
+print(x++);
+print(x);
+print(x--);
+print(x);
+
+print("-----------------");
+
+let y = 5;
+
+print(++y);
+print(--y);

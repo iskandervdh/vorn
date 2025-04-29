@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 
 	"github.com/iskandervdh/vorn/ast"
@@ -234,6 +235,13 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 }
 
 /*
+Check if the peek token is an assignment operator
+*/
+func (p *Parser) peekTokenIsAssignmentOperator() bool {
+	return slices.Contains(token.AssignmentOperators, p.peekToken.Type)
+}
+
+/*
 Expect the next token to be of a certain type.
 
 If the next token is of the expected type, the parser will move to the next token and return true.
@@ -244,11 +252,30 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 
 		return true
-	} else {
-		p.addPeekError(t)
-
-		return false
 	}
+
+	p.addPeekError(t)
+
+	return false
+
+}
+
+/*
+Expect the next token to be an assignment operator.
+
+If the next token is an assignment operator, the parser will move to the next token and return true.
+If the next token is not an assignment operator, the parser will add an error and return false.
+*/
+func (p *Parser) expectReassignmentOperator() bool {
+	if p.peekTokenIsAssignmentOperator() {
+		p.nextToken()
+
+		return true
+	}
+
+	p.addError(fmt.Sprintf("expected assignment operator, got %s instead", p.peekToken.Type), true)
+
+	return false
 }
 
 /*
@@ -616,7 +643,7 @@ func (p *Parser) parseReassignmentExpression() ast.Expression {
 
 	statement.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 
-	if !p.expectPeek(token.ASSIGN) { // coverage-ignore
+	if !p.expectReassignmentOperator() { // coverage-ignore
 		return nil
 	}
 
@@ -648,7 +675,7 @@ func (p *Parser) parseIdentifier() ast.Expression {
 		Value: p.currentToken.Literal,
 	}
 
-	if p.currentTokenIs(token.IDENT) && p.peekTokenIs(token.ASSIGN) {
+	if p.currentTokenIs(token.IDENT) && p.peekTokenIsAssignmentOperator() {
 		return p.parseReassignmentExpression()
 	}
 

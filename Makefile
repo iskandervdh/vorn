@@ -15,6 +15,7 @@ run-all-examples:
 	set -e
 	# Run all examples
 	for filename in ./examples/*.vorn; do \
+		echo "Running $$filename"; \
 		./vorn "$$filename"; \
 	done
 

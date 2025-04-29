@@ -25,10 +25,10 @@ vorn is a simple interpreted C-like scripting language that I'm making to learn 
 * Built-in functions (See [evaluator.go](evaluator/evaluator.go#L54) for a complete list)
 * Function chaining (See [evaluator.go](evaluator/evaluator.go#L87))
 * A REPL
+* Assignment operators
 
 ## Planned features
 
-* Assignment operators
 * Ternaries
 * Error handling
 * Modules/Namespaces/Importing

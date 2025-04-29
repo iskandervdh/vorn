@@ -625,6 +625,67 @@ func (e *Evaluator) evalChainingCallExpression(left ast.Node, rightCallExpressio
 	return object.NewError(rightCallExpression.Function, "chaining operator not supported: %s.%s", leftValue.Type(), rightCallExpression.Function.TokenLiteral())
 }
 
+func (e *Evaluator) evalReassignmentExpression(node *ast.ReassignmentExpression, env *object.Environment) object.Object {
+	left, environment, defined := env.Get(node.Name.Value)
+
+	if !defined {
+		return object.NewError(node, "variable %s has not been initialized.", node.Name.Value)
+	}
+
+	value := e.Eval(node.Value, env)
+
+	if isError(value) {
+		return value
+	}
+
+	if node.Token.Type == token.ASSIGN {
+		environment.Set(node.Name.Value, value)
+
+		return nil
+	}
+
+	var operator token.TokenType
+
+	switch node.Token.Type {
+	case token.PLUS_ASSIGN:
+		operator = token.PLUS
+	case token.MINUS_ASSIGN:
+		operator = token.MINUS
+	case token.MULTIPLY_ASSIGN:
+		operator = token.ASTERISK
+	case token.DIVIDE_ASSIGN:
+		operator = token.SLASH
+	case token.MODULO_ASSIGN:
+		operator = token.PERCENT
+	case token.BITWISE_OR_ASSIGN:
+		operator = token.BITWISE_OR
+	case token.BITWISE_AND_ASSIGN:
+		operator = token.BITWISE_AND
+	case token.BITWISE_XOR_ASSIGN:
+		operator = token.BITWISE_XOR
+	case token.LEFT_SHIFT_ASSIGN:
+		operator = token.LEFT_SHIFT
+	case token.RIGHT_SHIFT_ASSIGN:
+		operator = token.RIGHT_SHIFT
+	default:
+		return object.NewError(node, "unknown operator: %s", node.Token.Literal)
+	}
+
+	result := e.evalInfixExpression(&ast.InfixExpression{
+		Left:     node.Name,
+		Operator: string(operator),
+		Right:    node.Value,
+	}, left, value)
+
+	if isError(result) {
+		return result
+	}
+
+	environment.Set(node.Name.Value, result)
+
+	return nil
+}
+
 func (e *Evaluator) evalChainingExpression(left ast.Node, right ast.Node, env *object.Environment) object.Object {
 	switch right := right.(type) {
 	case *ast.CallExpression:
@@ -802,19 +863,8 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 		return e.evalIndexExpression(left, index)
 
 	case *ast.ReassignmentExpression:
-		_, environment, defined := env.Get(node.Name.Value)
+		return e.evalReassignmentExpression(node, env)
 
-		if !defined {
-			return object.NewError(node, "variable %s has not been initialized.", node.Name.Value)
-		}
-
-		value := e.Eval(node.Value, env)
-
-		if isError(value) {
-			return value
-		}
-
-		environment.Set(node.Name.Value, value)
 	case *ast.ChainingExpression:
 		return e.evalChainingExpression(node.Left, node.Right, env)
 	}

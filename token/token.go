@@ -52,6 +52,22 @@ const (
 	LEFT_SHIFT  = "<<"
 	RIGHT_SHIFT = ">>"
 
+	// Increment and decrement operators
+	INCREMENT = "++"
+	DECREMENT = "--"
+
+	// Assignment operators
+	PLUS_ASSIGN        = "+="
+	MINUS_ASSIGN       = "-="
+	MULTIPLY_ASSIGN    = "*="
+	DIVIDE_ASSIGN      = "/="
+	MODULO_ASSIGN      = "%="
+	BITWISE_OR_ASSIGN  = "|="
+	BITWISE_AND_ASSIGN = "&="
+	BITWISE_XOR_ASSIGN = "^="
+	LEFT_SHIFT_ASSIGN  = "<<="
+	RIGHT_SHIFT_ASSIGN = ">>="
+
 	// Delimiters
 	DOT       = "."
 	COMMA     = ","
@@ -80,6 +96,20 @@ const (
 	BREAK    = "BREAK"
 	CONTINUE = "CONTINUE"
 )
+
+var AssignmentOperators = []TokenType{
+	ASSIGN,
+	PLUS_ASSIGN,
+	MINUS_ASSIGN,
+	MULTIPLY_ASSIGN,
+	DIVIDE_ASSIGN,
+	MODULO_ASSIGN,
+	BITWISE_OR_ASSIGN,
+	BITWISE_AND_ASSIGN,
+	BITWISE_XOR_ASSIGN,
+	LEFT_SHIFT_ASSIGN,
+	RIGHT_SHIFT_ASSIGN,
+}
 
 /*
 Keywords are stored in a map where the key is the keyword and the value is the TokenType.

@@ -868,3 +868,83 @@ func TestIsTruthy(t *testing.T) {
 		}
 	}
 }
+
+func TestReassignmentExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"let x = 1; x = 2; x;", 2},
+		{"let x = 1; x += 4; x;", 5},
+		{"let x = 1; x -= 4; x;", -3},
+		{"let x = 1; x *= 4; x;", 4},
+		{"let x = 1; x /= 4; x;", 0.25},
+		{"let x = 1; x %= 4; x;", 1},
+		{"let x = 1; x &= 4; x;", 0},
+		{"let x = 1; x |= 4; x;", 5},
+		{"let x = 1; x ^= 4; x;", 5},
+		{"let x = 1; x <<= 4; x;", 16},
+		{"let x = 1; x >>= 4; x;", 0},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		integer, ok := test.expected.(int)
+
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+			continue
+		}
+
+		float, ok := test.expected.(float64)
+
+		if ok {
+			testFloatObject(t, evaluated, float)
+			continue
+		}
+
+		err, ok := test.expected.(string)
+
+		if ok {
+			testErrorObject(t, evaluated, err)
+			continue
+		}
+
+		testNullObject(t, evaluated)
+	}
+}
+
+func TestIncrementDecrementExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"let x = 1; x++; x;", 2},
+		{"let x = 1; x--; x;", 0},
+		{"let x = 1; ++x; x;", 2},
+		{"let x = 1; --x; x;", 0},
+		{"let x = 1.5; x++; x;", 2.5},
+		{"let x = 1.5; x--; x;", 0.5},
+		{"let x = 1.5; ++x; x;", 2.5},
+		{"let x = 1.5; --x; x;", 0.5},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		integer, ok := test.expected.(int)
+
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+			continue
+		}
+
+		float, ok := test.expected.(float64)
+
+		if ok {
+			testFloatObject(t, evaluated, float)
+			continue
+		}
+
+		testNullObject(t, evaluated)
+	}
+}

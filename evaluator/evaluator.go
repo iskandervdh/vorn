@@ -686,6 +686,49 @@ func (e *Evaluator) evalReassignmentExpression(node *ast.ReassignmentExpression,
 	return nil
 }
 
+func (e *Evaluator) evalIncrementDecrementExpression(node ast.Node, env *object.Environment) object.Object {
+	identifier, _, defined := env.Get(node.(*ast.IncrementDecrementExpression).Identifier.Value)
+
+	if !defined {
+		return object.NewError(node, "variable %s has not been initialized.", node.(*ast.IncrementDecrementExpression).Identifier.Value)
+	}
+
+	switch identifier := identifier.(type) {
+	case *object.Integer:
+		valueBefore := identifier.Value
+
+		switch node.(*ast.IncrementDecrementExpression).Token.Type {
+		case token.INCREMENT:
+			identifier.Value++
+		case token.DECREMENT:
+			identifier.Value--
+		}
+
+		if node.(*ast.IncrementDecrementExpression).Before {
+			return object.NewInteger(node, valueBefore)
+		}
+
+		return object.NewInteger(node, identifier.Value)
+	case *object.Float:
+		valueBefore := identifier.Value
+
+		switch node.(*ast.IncrementDecrementExpression).Token.Type {
+		case token.INCREMENT:
+			identifier.Value++
+		case token.DECREMENT:
+			identifier.Value--
+		}
+
+		if node.(*ast.IncrementDecrementExpression).Before {
+			return object.NewFloat(node, valueBefore)
+		}
+
+		return object.NewFloat(node, identifier.Value)
+	default:
+		return object.NewError(node, "unknown operator: %s", node.(*ast.IncrementDecrementExpression).Token.Literal)
+	}
+}
+
 func (e *Evaluator) evalChainingExpression(left ast.Node, right ast.Node, env *object.Environment) object.Object {
 	switch right := right.(type) {
 	case *ast.CallExpression:
@@ -864,6 +907,9 @@ func (e *Evaluator) Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.ReassignmentExpression:
 		return e.evalReassignmentExpression(node, env)
+
+	case *ast.IncrementDecrementExpression:
+		return e.evalIncrementDecrementExpression(node, env)
 
 	case *ast.ChainingExpression:
 		return e.evalChainingExpression(node.Left, node.Right, env)

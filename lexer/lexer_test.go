@@ -331,3 +331,127 @@ func TestForLoop(t *testing.T) {
 		}
 	}
 }
+
+func TestIncrementDecrement(t *testing.T) {
+	input := `i++;
+i--;
+++i;
+--i;`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.IDENT, "i"},
+		{token.INCREMENT, "++"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.DECREMENT, "--"},
+		{token.SEMICOLON, ";"},
+		{token.INCREMENT, "++"},
+		{token.IDENT, "i"},
+		{token.SEMICOLON, ";"},
+		{token.DECREMENT, "--"},
+		{token.IDENT, "i"},
+		{token.SEMICOLON, ";"},
+	}
+
+	l := New(input)
+	for i, test := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != test.expectedType {
+			t.Fatalf("tests[%d] - token type wrong. expected %q, got %q", i, test.expectedType, tok.Type)
+		}
+
+		if tok.Literal != test.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected %q, got %q", i, test.expectedLiteral, tok.Literal)
+		}
+	}
+
+	if tok := l.NextToken(); tok.Type != token.EOF {
+		t.Fatalf("expected EOF, got %q", tok.Type)
+	}
+}
+
+func TestReassignment(t *testing.T) {
+	input := `i = 5;
+i += 1;
+i -= 1;
+i *= 2;
+i /= 2;
+i %= 2;
+i &= 2;
+i |= 2;
+i ^= 2;
+i <<= 2;
+i >>= 2;`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.IDENT, "i"},
+		{token.ASSIGN, "="},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.PLUS_ASSIGN, "+="},
+		{token.INT, "1"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.MINUS_ASSIGN, "-="},
+		{token.INT, "1"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.MULTIPLY_ASSIGN, "*="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.DIVIDE_ASSIGN, "/="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.MODULO_ASSIGN, "%="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.BITWISE_AND_ASSIGN, "&="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.BITWISE_OR_ASSIGN, "|="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.BITWISE_XOR_ASSIGN, "^="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.LEFT_SHIFT_ASSIGN, "<<="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "i"},
+		{token.RIGHT_SHIFT_ASSIGN, ">>="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+	}
+
+	l := New(input)
+
+	for i, test := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != test.expectedType {
+			t.Fatalf("tests[%d] - token type wrong. expected %q, got %q", i, test.expectedType, tok.Type)
+		}
+
+		if tok.Literal != test.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected %q, got %q", i, test.expectedLiteral, tok.Literal)
+		}
+	}
+
+	if tok := l.NextToken(); tok.Type != token.EOF {
+		t.Fatalf("expected EOF, got %q", tok.Type)
+	}
+}

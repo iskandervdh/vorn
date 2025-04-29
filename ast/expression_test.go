@@ -460,3 +460,80 @@ func TestReassignmentExpression(t *testing.T) {
 
 	expression.expressionNode()
 }
+
+func TestIncrementDecrementExpression(t *testing.T) {
+	expression := &IncrementDecrementExpression{
+		Identifier: &Identifier{
+			Value: "foo",
+			Token: token.Token{
+				Type:    token.IDENT,
+				Literal: "foo",
+				Line:    1,
+				Column:  1,
+			},
+		},
+		Token: token.Token{
+			Type:    token.INCREMENT,
+			Literal: "++",
+			Line:    1,
+			Column:  1,
+		},
+	}
+
+	if expression.String() != "foo++" {
+		t.Errorf("IncrementDecrementExpression.String() = %s; want foo++", expression.String())
+	}
+
+	if expression.TokenLiteral() != "++" {
+		t.Errorf("IncrementDecrementExpression.TokenLiteral() = %s; want ++", expression.TokenLiteral())
+	}
+
+	if expression.Line() != 1 {
+		t.Errorf("IncrementDecrementExpression.Line() = %d; want 1", expression.Line())
+	}
+
+	if expression.Column() != 1 {
+		t.Errorf("IncrementDecrementExpression.Column() = %d; want 1", expression.Column())
+	}
+
+	expression.expressionNode()
+}
+
+func TestIncrementDecrementExpressionAfter(t *testing.T) {
+	expression := &IncrementDecrementExpression{
+		Identifier: &Identifier{
+			Value: "foo",
+			Token: token.Token{
+				Type:    token.IDENT,
+				Literal: "foo",
+				Line:    1,
+				Column:  1,
+			},
+		},
+		Token: token.Token{
+			Type:    token.DECREMENT,
+			Literal: "--",
+			Line:    1,
+			Column:  1,
+		},
+		Before: true,
+	}
+
+	if expression.String() != "--foo" {
+		t.Errorf("IncrementDecrementExpression.String() = %s; want --foo", expression.String())
+	}
+
+	if expression.TokenLiteral() != "--" {
+		t.Errorf("IncrementDecrementExpression.TokenLiteral() = %s; want --", expression.TokenLiteral())
+	}
+
+	if expression.Line() != 1 {
+		t.Errorf("IncrementDecrementExpression.Line() = %d; want 1", expression.Line())
+	}
+
+	if expression.Column() != 1 {
+		t.Errorf("IncrementDecrementExpression.Column() = %d; want 1", expression.Column())
+	}
+
+	expression.expressionNode()
+}

@@ -1,0 +1,24 @@
+let x = 10;
+
+print(x++); // 10
+print(x); // 11
+print(x--); // 11
+print(x); // 10
+
+print("-----------------");
+
+let y = 5;
+
+print(++y); // 6
+print(--y); // 5
+print(y); // 5
+
+print("-----------------");
+
+let z = 0;
+
+print(z++); // 0
+print(z); // 1
+print(++z + 2); // 4
+print(z); // 2
+print(--z * 8) // 8

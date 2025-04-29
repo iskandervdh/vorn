@@ -185,6 +185,30 @@ func (rs *ReassignmentExpression) String() string {
 func (rs *ReassignmentExpression) Line() int   { return rs.Token.Line }
 func (rs *ReassignmentExpression) Column() int { return rs.Token.Column }
 
+type IncrementDecrementExpression struct {
+	Token      token.Token // The increment or decrement operator token (e.g. ++, --)
+	Identifier *Identifier
+	Before     bool
+}
+
+func (id *IncrementDecrementExpression) expressionNode()      {}
+func (id *IncrementDecrementExpression) TokenLiteral() string { return id.Token.Literal }
+func (id *IncrementDecrementExpression) String() string {
+	var out bytes.Buffer
+
+	if id.Before {
+		out.WriteString(id.Token.Literal)
+		out.WriteString(id.Identifier.String())
+	} else {
+		out.WriteString(id.Identifier.String())
+		out.WriteString(id.Token.Literal)
+	}
+
+	return out.String()
+}
+func (id *IncrementDecrementExpression) Line() int   { return id.Token.Line }
+func (id *IncrementDecrementExpression) Column() int { return id.Token.Column }
+
 type ChainingExpression struct {
 	Token token.Token // The '.' token
 	Left  Expression

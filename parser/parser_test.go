@@ -1120,6 +1120,30 @@ NAME = "ME";`
 	if errors[0] != expectedError {
 		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
 	}
+
+	input = `const NAME = "YOU";
+func test() {
+	print(NAME);
+	NAME = "ME";
+}
+
+test();`
+
+	l = lexer.New(input)
+	p = New(l, false)
+	p.ParseProgram()
+
+	errors = p.Errors()
+
+	if len(errors) != 1 {
+		t.Error("Expected a parser error")
+	}
+
+	expectedError = "[4:8] can not reassign constant NAME."
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
 }
 
 func TestParserPrintErrors(t *testing.T) {
@@ -1390,6 +1414,26 @@ func TestParseGroupedExpressionError(t *testing.T) {
 	}
 
 	expectedError := "[1:8]: expected ')', got ; instead"
+
+	if errors[0] != expectedError {
+		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
+	}
+}
+
+func TestExpectReassignmentOperator(t *testing.T) {
+	input := "x + 1;"
+
+	l := lexer.New(input)
+	p := New(l, false)
+	p.expectReassignmentOperator()
+
+	errors := p.Errors()
+
+	if len(errors) != 1 {
+		t.Fatal("Expected a parser error")
+	}
+
+	expectedError := "[1:4]: expected assignment operator, got + instead"
 
 	if errors[0] != expectedError {
 		t.Errorf("Expected error message to be %q, got %q", expectedError, errors[0])
